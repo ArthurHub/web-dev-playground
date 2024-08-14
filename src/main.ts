@@ -1,4 +1,4 @@
-import { collect_images_main } from './collect_images';
+import { collect_images_main } from './blog_migration/collect_images';
 
 function main() {
     // hello world
@@ -7,7 +7,7 @@ function main() {
 }
 
 // main();
-    
+
 collect_images_main();
 
 class bla {
@@ -21,5 +21,4 @@ class bla {
     constructor(num: number) {
         this.num = num;
     }
-
 }
