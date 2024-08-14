@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@types/node": "^22.1.0"
+  },
+  "dependencies": {
+    "marked": "^14.0.0",
+    "node-html-parser": "^6.1.13"
+  }
+}
