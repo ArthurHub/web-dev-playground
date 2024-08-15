@@ -1,4 +1,4 @@
-import { collect_images_main } from "./blog_migration/collect_images";
+// import { collect_images_main } from "./blog_migration/collect_images";
 
 function main() {
   // hello world
@@ -6,9 +6,9 @@ function main() {
   console.log(message);
 }
 
-// main();
+main();
 
-collect_images_main();
+// collect_images_main();
 
 class bla {
   private _num: number;

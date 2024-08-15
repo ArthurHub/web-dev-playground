@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "typescript",
+      "tsconfig": "typescript-first/tsconfig.json",
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "label": "tsc: build - tsconfig.json"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "src/react-first-app",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build - src/react-first-app",
+      "detail": "react-scripts build"
+    },
+    {
+      "type": "npm",
+      "script": "start",
+      "path": "src/react-first-app",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: start - src/react-first-app",
+      "detail": "react-scripts start"
+    }
+  ]
+}

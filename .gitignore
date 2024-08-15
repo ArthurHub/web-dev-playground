@@ -30,13 +30,7 @@ build/
 out/
 
 # IDEs and editors
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# .vscode/
 
 # MacOS
 .DS_Store
