@@ -18,7 +18,7 @@
       "request": "launch",
       "name": "Launch express app",
       "runtimeExecutable": "nodemon", // to restart when files change
-      "program": "${workspaceFolder}\\src\\express_first_app\\bin\\www",
+      "program": "${workspaceFolder}\\src\\express-first-app\\bin\\www",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
