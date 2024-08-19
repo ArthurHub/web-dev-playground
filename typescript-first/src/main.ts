@@ -1,5 +1,5 @@
-import { doSomething } from "./play1";
-import { doSomething as doSomething2 } from "./play2";
+import { doSomething } from "./play1.js";
+import * as play2 from "./play2.js";
 
 function main() {
   // hello world
@@ -8,7 +8,7 @@ function main() {
 
   doSomething();
 
-  doSomething2();
+  play2.doSomething();
 }
 
 main();
