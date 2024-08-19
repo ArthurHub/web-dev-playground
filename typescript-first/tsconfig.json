@@ -1,9 +1,15 @@
 {
-    "compilerOptions": {
-        "target": "ES5",
-        "module": "CommonJS",
-        "outDir": "./out",
-        "sourceMap": true
-    },
-    "include": ["./src/**/*"]
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "outDir": "./out",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noImplicitThis": true
+  },
+  "include": ["./src/**/*"]
 }
