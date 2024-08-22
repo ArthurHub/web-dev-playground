@@ -1,11 +1,11 @@
-export function doSomething() {
-  let big: bigint = 100n;
+export function doSomething(): void {
+  const big: bigint = 100n;
   someFunc();
 }
 
 class Foo {
-  members: Number[] = []; // Initialize directly
-  add(x: Number) {
+  members: number[] = []; // Initialize directly
+  add(x: number) {
     this.members.push(x);
   }
 }
@@ -21,7 +21,7 @@ class test {
         };
       }
     }
-    var person = new Person(1);
+    const person = new Person(1);
     setTimeout(person.growOld, 1000);
 
     setTimeout(function () {
@@ -32,20 +32,20 @@ class test {
 
 function someFunc() {
   const data = {
-    name: "John",
+    name: 'John',
     age: 30,
     address: {
-      city: "New York",
-      state: "NY",
+      city: 'New York',
+      state: 'NY',
     },
   };
 
   const data2 = {
     ...data,
-    more: "more",
+    more: 'more',
   };
 
-  let {
+  const {
     name: aName,
     age,
     address: { city: myCity },
@@ -53,7 +53,7 @@ function someFunc() {
   } = data2;
   console.log(`${aName} ${age} %s %s`, myCity, more);
 
-  var someArray = [9, 2, 5];
+  const someArray = [9, 2, 5];
   for (const elm of someArray) {
     console.log(elm);
   }

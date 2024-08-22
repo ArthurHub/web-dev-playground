@@ -1,4 +1,4 @@
-export function doSomething() {
+export function doSomething(): void {
   doPromise1();
 
   doPromise2();
@@ -6,7 +6,7 @@ export function doSomething() {
   dramaticWelcome();
 }
 
-function doPromise1() {
+function doPromise1(): void {
   Promise.resolve(123)
     .then((res) => {
       console.log(res); // 123
@@ -22,11 +22,11 @@ function doPromise1() {
     });
 }
 
-const promise = new Promise<number>((resolve, reject) => {
+const promise = new Promise<number>((resolve) => {
   resolve(123);
 });
 
-function doPromise2() {
+function doPromise2(): void {
   promise
     .then((res) => {
       console.log(res + 5); // 123
@@ -52,7 +52,7 @@ function delay(milliseconds: number, count: number): Promise<number> {
 
 // async function always returns a Promise
 async function dramaticWelcome(): Promise<void> {
-  console.log("Hello");
+  console.log('Hello');
 
   for (let i = 0; i < 5; i++) {
     // await is converting Promise<number> into number
@@ -60,5 +60,5 @@ async function dramaticWelcome(): Promise<void> {
     console.log(count);
   }
 
-  console.log("World!");
+  console.log('World!');
 }
