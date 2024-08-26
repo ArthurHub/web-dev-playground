@@ -9,16 +9,16 @@
       "request": "launch",
       "name": "Run main.ts",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}\\typescript-first\\src\\main.ts",
+      "program": "${workspaceFolder}\\typescript-learn\\src\\main.ts",
       "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/typescript-first/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/typescript-learn/dist/**/*.js"]
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Launch express app",
       "runtimeExecutable": "nodemon", // to restart when files change
-      "program": "${workspaceFolder}\\src\\express-first-app\\bin\\www",
+      "program": "${workspaceFolder}\\first-apps\\src\\express-first-app\\bin\\www",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
