@@ -3,7 +3,7 @@ export function doSomething(): void {
 
   doPromise2();
 
-  dramaticWelcome();
+  void dramaticWelcome();
 }
 
 function doPromise1(): void {
@@ -19,6 +19,9 @@ function doPromise1(): void {
     .then((res) => {
       console.log(res); // 123 : Notice that this `then` is called with the resolved value
       return 123;
+    })
+    .catch((err: unknown) => {
+      console.error(err);
     });
 }
 
@@ -39,6 +42,9 @@ function doPromise2(): void {
     .then((res) => {
       console.log(res); // 123 : Notice that this `then` is called with the resolved value
       return 123;
+    })
+    .catch((err: unknown) => {
+      console.error(err);
     });
 }
 

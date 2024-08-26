@@ -1,22 +1,23 @@
 export function doSomething(): void {
-  const big: bigint = 100n;
+  const big = 100n;
+  console.log(big);
   someFunc();
 }
 
 class Foo {
   members: number[] = []; // Initialize directly
-  add(x: number) {
+  add(x: number): void {
     this.members.push(x);
   }
 }
 
 class test {
-  run() {
+  run(): void {
     class Person {
       growOld: () => void;
       constructor(public age: number) {
         this.age = age;
-        this.growOld = () => {
+        this.growOld = (): void => {
           this.age++;
         };
       }
@@ -30,7 +31,7 @@ class test {
   }
 }
 
-function someFunc() {
+function someFunc(): void {
   const data = {
     name: 'John',
     age: 30,
