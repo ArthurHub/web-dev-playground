@@ -1,5 +1,6 @@
 import * as fs from 'fs/promises';
 import { doSomething } from './play1.js';
+import * as play4 from './play4.js';
 import * as play3 from './play3.js';
 import * as play2 from './play2.js';
 
@@ -11,8 +12,10 @@ async function main(): Promise<void> {
   const object = { msg: 'Hello World' };
   console.log(`${message} ${object.msg}`);
 
-  play3.doSomething();
+  play4.doSomething();
   return;
+
+  play3.doSomething();
 
   displayValue('hello');
   displayValue(34534);
