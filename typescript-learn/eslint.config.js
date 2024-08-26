@@ -20,6 +20,7 @@ export default tseslint.config(
   {
     rules: {
       'no-undef': 'warn',
+      'prefer-const': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/restrict-template-expressions': [
