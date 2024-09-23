@@ -11,8 +11,16 @@
 //
 // ArthurHub, 2024
 
-function main() {
-  console.log('todo...');
+import { extractImageSources } from './image-source-extractor.js';
+
+async function main(): Promise<void> {
+  const folderPath = '/Stuff/github/the-art-of-dev/blog/posts';
+
+  console.log('Run extractImageSources...');
+  const images = await extractImageSources(folderPath);
+
+  console.log(`Extracted ${images.length} images`);
+  console.log(images[0]);
 }
 
 main();
