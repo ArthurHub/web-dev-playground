@@ -3,6 +3,16 @@
   "tasks": [
     {
       "type": "typescript",
+      "tsconfig": "blog-transfer/tsconfig.json",
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "label": "tsc: build - blog-transfer"
+    },
+    {
+      "type": "typescript",
       "tsconfig": "typescript-learn/tsconfig.json",
       "problemMatcher": ["$tsc"],
       "group": {

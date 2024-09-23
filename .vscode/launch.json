@@ -7,11 +7,22 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Blog transfer",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}\\blog-transfer\\src\\main.ts",
+      "preLaunchTask": "tsc: build - blog-transfer",
+      "outFiles": ["${workspaceFolder}/blog-transfer/dist/**/*.js"],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Run main.ts",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}\\typescript-learn\\src\\main.ts",
       "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/typescript-learn/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/typescript-learn/dist/**/*.js"],
+      "internalConsoleOptions": "openOnSessionStart"
     },
     {
       "type": "node",

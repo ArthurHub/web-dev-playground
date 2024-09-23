@@ -4,6 +4,7 @@ import * as play4 from './play4.js';
 import * as play3 from './play3.js';
 import * as play2 from './play2.js';
 import * as play6 from './play6.js';
+import { testCalled } from './play7.js';
 
 type SomeType = string | number | any;
 
@@ -13,9 +14,11 @@ async function main(): Promise<void> {
   const object = { msg: 'Hello World' };
   console.log(`${message} ${object.msg}`);
 
-  play6.doMixin();
+  testCalled();
 
   return;
+
+  play6.doMixin();
 
   play4.doSomething();
 

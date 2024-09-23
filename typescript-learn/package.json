@@ -15,7 +15,7 @@
     "start": "npm run build & node dist/main.js",
     "build": "tsc",
     "lint": "eslint \".\\src\"",
-    "release": "standard-version -- --release-as minor",
+    "release": "standard-version",
     "npm-u-i": "npm i -g npm-check-updates",
     "npm-u": "ncu -u && npm i"
   }
