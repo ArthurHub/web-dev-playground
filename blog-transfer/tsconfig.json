@@ -17,6 +17,7 @@
     "preserveConstEnums": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
+    "useUnknownInCatchVariables": true,
     // handle libs: only know of node global env types
     "lib": ["ES2022"],
     "types": ["node"]

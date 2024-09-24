@@ -15,6 +15,7 @@ import { promises } from 'fs';
 import * as path from 'path';
 import { downloadAllImages } from './image-downloader.js';
 import { extractImageSources, ImageInfo } from './image-source-extractor.js';
+import { getFriendlyError } from './common/common.js';
 
 interface ImageInfoExt extends ImageInfo {
   fixedSource: string;
@@ -67,7 +68,7 @@ function fixUrl(urlStr: string): string {
     }
     return urlStr;
   } catch (error) {
-    throw new Error(`Invalid URL: ${urlStr}. Error: ${error}`);
+    throw new Error(`Invalid URL: ${urlStr}. Error: ${getFriendlyError(error)}`);
   }
 }
 

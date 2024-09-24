@@ -11,10 +11,16 @@
 //
 // ArthurHub, 2024
 
+import { getFriendlyError } from './common/common.js';
 import { updateBlogImages } from './image-source-updater.js';
 
 async function main(): Promise<void> {
-  await updateBlogImages();
+  try {
+    await updateBlogImages();
+  } catch (error) {
+    console.error(`Failed toplevel execution: ${getFriendlyError(error)}`);
+    throw error;
+  }
 }
 
 void main();

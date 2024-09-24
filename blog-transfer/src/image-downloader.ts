@@ -21,6 +21,7 @@ import * as fs from 'fs';
 import * as https from 'https';
 import * as http from 'http';
 import { URL } from 'url';
+import { getFriendlyError } from './common/common.js';
 
 export interface DownloadInfo {
   in: string;
@@ -66,6 +67,7 @@ async function downloadFromUrl(urlStr: string, outputPath: string): Promise<void
           response.headers.location
         ) {
           // Handle redirects
+          // eslint-disable-next-line @typescript-eslint/use-unknown-in-catch-callback-variable
           downloadFromUrl(response.headers.location, outputPath).then(resolve).catch(reject);
         } else {
           reject(
@@ -85,6 +87,6 @@ function getUrl(urlStr: string): URL {
   try {
     return new URL(urlStr);
   } catch (error) {
-    throw new Error(`Invalid URL: ${urlStr}. Error: ${error}`);
+    throw new Error(`Invalid URL: ${urlStr}. Error: ${getFriendlyError(error)}`);
   }
 }
