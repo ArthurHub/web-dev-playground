@@ -66,10 +66,12 @@ async function downloadFromUrl(urlStr: string, outputPath: string): Promise<void
           response.headers.location
         ) {
           // Handle redirects
-          downloadFromUrl(response.headers.location!, outputPath).then(resolve).catch(reject);
+          downloadFromUrl(response.headers.location, outputPath).then(resolve).catch(reject);
         } else {
           reject(
-            new Error(`Failed to download image: ${urlObj}, Status code: ${response.statusCode}`),
+            new Error(
+              `Failed to download image: ${urlObj.toString()}, Status code: ${response.statusCode}`,
+            ),
           );
         }
       })
@@ -79,7 +81,7 @@ async function downloadFromUrl(urlStr: string, outputPath: string): Promise<void
   });
 }
 
-function getUrl(urlStr: string) {
+function getUrl(urlStr: string): URL {
   try {
     return new URL(urlStr);
   } catch (error) {
