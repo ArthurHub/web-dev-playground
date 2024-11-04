@@ -7,6 +7,17 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "chatbot",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}\\chatbot-exercise\\src\\main.ts",
+      "preLaunchTask": "tsc: build - chatbot",
+      "outFiles": ["${workspaceFolder}/chatbot-exercise/dist/**/*.js"],
+      // "internalConsoleOptions": "openOnSessionStart",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Blog transfer",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}\\blog-transfer\\src\\main.ts",

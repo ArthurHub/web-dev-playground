@@ -3,6 +3,16 @@
   "tasks": [
     {
       "type": "typescript",
+      "tsconfig": "chatbot-exercise/tsconfig.json",
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "label": "tsc: build - chatbot"
+    },
+    {
+      "type": "typescript",
       "tsconfig": "blog-transfer/tsconfig.json",
       "problemMatcher": ["$tsc"],
       "group": {
