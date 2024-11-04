@@ -11,7 +11,7 @@
 //
 // ArthurHub, 2024
 
-import { getFriendlyError } from './common/common.js';
+import { getFriendlyError } from '../../libs/common/src/common.js';
 import { updateBlogImages } from './image-source-updater.js';
 
 async function main(): Promise<void> {

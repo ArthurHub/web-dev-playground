@@ -15,7 +15,7 @@ import { promises } from 'fs';
 import * as path from 'path';
 import { downloadAllImages } from './image-downloader.js';
 import { extractImageSources, ImageInfo } from './image-source-extractor.js';
-import { getFriendlyError } from './common/common.js';
+import { getFriendlyError } from '..//../libs/common/src/common.js';
 
 interface ImageInfoExt extends ImageInfo {
   fixedSource: string;

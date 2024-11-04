@@ -1,0 +1,13 @@
+{
+  "name": "common",
+  "version": "0.1.0",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^22.7.1",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "eslint": "^9.11.1",
+    "eslint-plugin-react": "^7.36.1",
+    "typescript-eslint": "^8.7.0"
+  }
+}
