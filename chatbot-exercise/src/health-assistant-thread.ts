@@ -3,11 +3,6 @@ import { HealthAssistantClient } from './health-assistant-client.js';
 import * as readline from 'readline/promises';
 
 export class HealthAssistantThread {
-  rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
   /** OpenAI client to interact with */
   private readonly client: HealthAssistantClient;
 
@@ -18,7 +13,7 @@ export class HealthAssistantThread {
   private patientData?: PatientData;
 
   constructor() {
-    this.client = new HealthAssistantClient(process.stdout, 'YOUR_API_KEY');
+    this.client = new HealthAssistantClient(process.stdout, 'your-api-key');
   }
 
   public async run() {
@@ -26,7 +21,23 @@ export class HealthAssistantThread {
     this.init();
 
     // step 1: get patient data
-    console.log(`${this.messages.at(-1)?.content}\n`);
+    await this.getPatientAgeStep();
+    if (!this.patientData) {
+      return;
+    }
+
+    // step 2: question-answer loop
+    await this.questionAnswersStep();
+
+    // step 3: goodbye message
+    console.log('\n\nThis is all the questions I can answer at this time. Thank you.\n');
+  }
+
+  private async getPatientAgeStep() {
+    const question =
+      "Hello, I'm here for you at this hard time. May I have your name and age to assist you better please?";
+    console.log(`question\n`);
+    this.messages.push({ actor: ThreadActor.Assistant, content: question });
 
     let attempts = 3;
     while (!this.patientData && attempts-- > 0) {
@@ -40,31 +51,30 @@ export class HealthAssistantThread {
         this.setPatientData(data);
       }
     }
+  }
 
-    if (!this.patientData) {
-      return;
-    }
-
-    // step 2: question-answer loop
+  private async questionAnswersStep() {
     for (let i = 0; i < 3; i++) {
-      const text = await this.getInputFromUser();
-      console.log();
+      await this.getInputFromUser();
       const message = await this.client.respondToQueryStream(this.messages);
       if (message) {
         this.messages.push(message);
       }
     }
-
-    // step 3: goodbye message
-    console.log('\n\nThis is all the questions I can answer at this time. Thank you.\n');
   }
 
   private async getInputFromUser(): Promise<void> {
-    let answer;
-    while (!answer) {
-      answer = (await this.rl.question('> ')).trim();
+    const rl = readline.createInterface({ input: process.stdin });
+    try {
+      let answer;
+      while (!answer) {
+        answer = (await rl.question('> ')).trim();
+      }
+      this.messages.push({ actor: ThreadActor.User, content: answer });
+      console.log();
+    } finally {
+      rl.close();
     }
-    this.messages.push({ actor: ThreadActor.User, content: answer });
   }
 
   private setPatientData(data: PatientData) {
@@ -98,11 +108,6 @@ export class HealthAssistantThread {
         in countries with a very high Human Development Index (HDI), 1 in 12 women will be diagnosed with breast cancer 
         in their lifetime and 1 in 71 women die of it. In contrast, in countries with a low HDI; while only 1 in 27 women 
         is diagnosed with breast cancer in their lifetime, 1 in 48 women will die from it.`,
-      },
-      {
-        actor: ThreadActor.Assistant,
-        content:
-          "Hello, I'm here for you at this hard time. May I have your name and age to assist you better please?",
       },
     ];
   }
