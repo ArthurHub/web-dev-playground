@@ -8,6 +8,8 @@ import { PatientData, ThreadActor, ThreadMessage } from './entities.js';
  * OpenAI client wrapper to encapsulate OpenAI APIs for Health Assistant.
  */
 export class HealthAssistantClient {
+  private readonly outStream: NodeJS.WriteStream;
+
   /** The AI model to use */
   private readonly model: string;
 
@@ -22,7 +24,8 @@ export class HealthAssistantClient {
     patient_age: z.number(),
   });
 
-  constructor(apiKey: string, model: string = 'gpt-4o-mini') {
+  constructor(outStream: NodeJS.WriteStream, apiKey: string, model: string = 'gpt-4o-mini') {
+    this.outStream = outStream;
     this.model = model;
     this.openAI = new OpenAI({ apiKey: apiKey });
   }
@@ -38,13 +41,17 @@ export class HealthAssistantClient {
 
     const completion = await this.openAI.beta.chat.completions.parse(params);
     const response = completion.choices[0]?.message;
-    if (response?.parsed && response.parsed.is_patient_give_info) {
+    if (response?.parsed) {
+      let patientData;
+      if (response.parsed.is_patient_give_info) {
+        patientData = { name: response.parsed.patient_name, age: response.parsed.patient_age };
+      }
       return [
         {
           actor: ThreadActor.Assistant,
           content: response.parsed.assistant_response,
         },
-        { name: response.parsed.patient_name, age: response.parsed.patient_age },
+        patientData,
       ];
     } else if (response?.content) {
       return [
@@ -69,7 +76,7 @@ export class HealthAssistantClient {
 
     // stream the output
     for await (const chunk of stream) {
-      process.stdout.write(chunk.choices[0]?.delta?.content ?? '');
+      this.outStream.write(chunk.choices[0]?.delta?.content ?? '');
     }
 
     const content = await stream.finalContent();

@@ -1,7 +1,13 @@
 import { PatientData, ThreadActor, ThreadMessage } from './entities.js';
 import { HealthAssistantClient } from './health-assistant-client.js';
+import * as readline from 'readline/promises';
 
 export class HealthAssistantThread {
+  rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
   /** OpenAI client to interact with */
   private readonly client: HealthAssistantClient;
 
@@ -12,7 +18,7 @@ export class HealthAssistantThread {
   private patientData?: PatientData;
 
   constructor() {
-    this.client = new HealthAssistantClient('your-api-key');
+    this.client = new HealthAssistantClient(process.stdout, 'YOUR_API_KEY');
   }
 
   public async run() {
@@ -24,38 +30,64 @@ export class HealthAssistantThread {
 
     let attempts = 3;
     while (!this.patientData && attempts-- > 0) {
-      this.getUserMessage();
+      await this.getInputFromUser();
       const [message, data] = await this.client.getPatientData(this.messages);
       if (message) {
         this.messages.push(message);
-        console.log(`${message.content}\n`);
+        console.log(`\n${message.content}\n`);
       }
       if (data) {
-        this.patientData = data;
+        this.setPatientData(data);
       }
     }
 
+    if (!this.patientData) {
+      return;
+    }
+
     // step 2: question-answer loop
-    // for (let i = 0; i < 3; i++) {
-    //   const text = this.getUserMessage();
-    //   this.client.respondToQueryStream(this.messages);
-    // }
+    for (let i = 0; i < 3; i++) {
+      const text = await this.getInputFromUser();
+      console.log();
+      const message = await this.client.respondToQueryStream(this.messages);
+      if (message) {
+        this.messages.push(message);
+      }
+    }
 
     // step 3: goodbye message
+    console.log('\n\nThis is all the questions I can answer at this time. Thank you.\n');
   }
 
-  private getUserMessage(): void {
-    const text = "Hi, my name is Jane and I'm 45 years old.";
-    // const text = "Hi, why do you need it? I'm just looking for some information.";
-    this.messages.push({ actor: ThreadActor.User, content: text });
+  private async getInputFromUser(): Promise<void> {
+    let answer;
+    while (!answer) {
+      answer = (await this.rl.question('> ')).trim();
+    }
+    this.messages.push({ actor: ThreadActor.User, content: answer });
+  }
+
+  private setPatientData(data: PatientData) {
+    this.patientData = data;
+    let content = `Patient is ${data.age} years old.`;
+    if (data.name) {
+      content += ` Patient's name is ${data.name}.`;
+    }
+    this.messages.push({
+      actor: ThreadActor.System,
+      content: content,
+    });
   }
 
   private init() {
     this.messages = [
       {
         actor: ThreadActor.System,
-        content:
-          'You are a healthcare assistant. You art providing information to a breast cancer patient.',
+        content: `You are a healthcare assistant. 
+          You art providing information to a breast cancer patient.
+          You need to know the patient's name and age to assist them better.
+          You can work with only the age if the patient prefers to remain anonymous.
+          You absolutely must have the age and will not answer any questions without know it.`,
       },
       {
         actor: ThreadActor.System,
