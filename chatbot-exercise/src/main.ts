@@ -1,11 +1,11 @@
-import { HealthAssistant } from './health-assistant.js';
+import { HealthAssistantThread } from './health-assistant-thread.js';
 
 async function main(): Promise<void> {
-  const assistant = new HealthAssistant();
+  const thread = new HealthAssistantThread();
 
   console.log('\n---\n');
 
-  await assistant.getPatientData();
+  await thread.run();
 
   console.log('\n\n---\n');
 }
