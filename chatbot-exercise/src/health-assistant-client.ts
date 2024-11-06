@@ -1,5 +1,5 @@
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { never, unknown, z } from 'zod';
+import { z } from 'zod';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 import { PatientData, ThreadActor, ThreadMessage } from './entities.js';
@@ -81,7 +81,7 @@ export class HealthAssistantClient {
       messages: this.convertMessagesToParams(messages),
     };
 
-    const stream = await this.openAI.beta.chat.completions.stream(params);
+    const stream = this.openAI.beta.chat.completions.stream(params);
 
     // stream the output
     for await (const chunk of stream) {

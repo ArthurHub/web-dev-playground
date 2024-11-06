@@ -30,7 +30,7 @@ export OPENAI_API_KEY="your_api_key_here"`,
     this.client = new HealthAssistantClient(process.stdout, apiKey);
   }
 
-  public async run() {
+  public async run(): Promise<void> {
     // Clear and init messages in the thread for conversation
     this.init();
 
@@ -100,7 +100,7 @@ export OPENAI_API_KEY="your_api_key_here"`,
     }
   }
 
-  private setPatientData(data: PatientData) {
+  private setPatientData(data: PatientData): void {
     this.patientData = data;
     let content = `Patient is ${data.age} years old.`;
     if (data.name) {
@@ -116,7 +116,7 @@ export OPENAI_API_KEY="your_api_key_here"`,
    * Clear the state of the thread and initialize with base system messages.
    * System messages define the behavior and knowledge of the bot.
    */
-  private init() {
+  private init(): void {
     this.patientData = undefined;
     this.messages = [
       {
