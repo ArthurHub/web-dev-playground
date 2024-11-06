@@ -36,13 +36,14 @@ Build an AI agent with a python state machine that completes the following routi
 Requirements:
 
 - Node.js
-- npm
 - OpenAI API key
 
+Download the bundled js file and run it:
+
 ```bash
-npm install
+curl -O https://raw.githubusercontent.com/ArthurHub/web-dev-playground/refs/heads/main/chatbot-exercise/bundle/main.js
 export OPENAI_API_KEY="your_api_key_here"
-npm run start
+node main.js
 ```
 
 ## Examples
