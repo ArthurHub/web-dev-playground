@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "name": "root-workspace",
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@typescript-eslint/eslint-plugin": "^8.13.0",
+    "@typescript-eslint/parser": "^8.13.0",
+    "eslint": "^9.14.0",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.13.0"
+  },
+  "workspaces": [
+    "libs/*",
+    "projects/*"
+  ]
+}
