@@ -46,3 +46,4 @@ ehthumbs.db
 .env.production
 .env.local
 .env.*.local
+.parcel-cache
