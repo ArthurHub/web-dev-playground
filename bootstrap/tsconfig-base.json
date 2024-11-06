@@ -8,6 +8,9 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "sourceMap": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
 
     // stronger type checking
     "strict": true,
@@ -25,13 +28,12 @@
     "skipDefaultLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
-    // handle libs: only know of node global env types
-    "lib": ["ES2022"],
-    "types": ["node"],
+    // interop
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
 
-    // composite
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true
+    // handle libs: only know of node global env types
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
   }
 }

@@ -5,10 +5,7 @@
   "dependencies": {
     "common": "0.1.0"
   },
-  "devDependencies": {},
   "scripts": {
-    "clean": "tsc --build --clean && rm -rf dist",
-    "build": "tsc --build",
     "start": "node dist/main.js"
   }
 }

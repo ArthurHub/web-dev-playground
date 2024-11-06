@@ -5,10 +5,5 @@
   "exports": {
     "./common.js": "./dist/common.js"
   },
-  "dependencies": {},
-  "devDependencies": {},
-  "scripts": {
-    "clean": "tsc --build --clean && rm -rf dist",
-    "build": "tsc --build"
-  }
+  "dependencies": {}
 }
