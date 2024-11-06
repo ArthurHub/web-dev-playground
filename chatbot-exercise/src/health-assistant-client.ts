@@ -30,6 +30,11 @@ export class HealthAssistantClient {
     this.openAI = new OpenAI({ apiKey: apiKey });
   }
 
+  /**
+   * Use structured outputs to understand if user responded with required
+   * name/age info. and to extract it.
+   * No proper error handling for now.
+   */
   public async getPatientData(
     messages: ThreadMessage[],
   ): Promise<[ThreadMessage | undefined, PatientData | undefined]> {
@@ -66,6 +71,10 @@ export class HealthAssistantClient {
     }
   }
 
+  /**
+   * Simple question-answer loop using stream for the "typing" experience.
+   * No proper error handling for now.
+   */
   public async respondToQueryStream(messages: ThreadMessage[]): Promise<ThreadMessage | undefined> {
     const params = {
       model: this.model,

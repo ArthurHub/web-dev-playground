@@ -2,6 +2,12 @@ import { PatientData, ThreadActor, ThreadMessage } from './entities.js';
 import { HealthAssistantClient } from './health-assistant-client.js';
 import * as readline from 'readline/promises';
 
+/**
+ * Encapsulate a single conversation with the user.
+ * Holds all the messages to keep the context for the next user question.
+ * Hold the knowledge base and behavioral system messages.
+ * Has the simple logic (no state machine) of conversation flow.
+ */
 export class HealthAssistantThread {
   /** OpenAI client to interact with */
   private readonly client: HealthAssistantClient;
@@ -10,10 +16,18 @@ export class HealthAssistantThread {
   private messages: ThreadMessage[] = [];
 
   /** Use name and age as collected from interaction */
-  private patientData?: PatientData;
+  private patientData: PatientData | undefined;
 
   constructor() {
-    this.client = new HealthAssistantClient(process.stdout, 'your-api-key');
+    const apiKey = process.env['OPENAI_API_KEY'];
+    if (!apiKey) {
+      throw new Error(
+        `Please set OPENAI_API_KEY environment variable.
+export OPENAI_API_KEY="your_api_key_here"`,
+      );
+    }
+
+    this.client = new HealthAssistantClient(process.stdout, apiKey);
   }
 
   public async run() {
@@ -33,10 +47,15 @@ export class HealthAssistantThread {
     console.log('\n\nThis is all the questions I can answer at this time. Thank you.\n');
   }
 
-  private async getPatientAgeStep() {
+  /**
+   * Ask the user for name and age.
+   * Allow 3 iterations to get the info from the user.
+   * If the user provides the info it is set on the thread state.
+   */
+  private async getPatientAgeStep(): Promise<void> {
     const question =
       "Hello, I'm here for you at this hard time. May I have your name and age to assist you better please?";
-    console.log(`question\n`);
+    console.log(`${question}\n`);
     this.messages.push({ actor: ThreadActor.Assistant, content: question });
 
     let attempts = 3;
@@ -53,7 +72,11 @@ export class HealthAssistantThread {
     }
   }
 
-  private async questionAnswersStep() {
+  /**
+   * Get user question and provide an answer simple loop limited to 3.
+   * TODO: check user sentiment to break early on "goodbye" user input.
+   */
+  private async questionAnswersStep(): Promise<void> {
     for (let i = 0; i < 3; i++) {
       await this.getInputFromUser();
       const message = await this.client.respondToQueryStream(this.messages);
@@ -64,7 +87,7 @@ export class HealthAssistantThread {
   }
 
   private async getInputFromUser(): Promise<void> {
-    const rl = readline.createInterface({ input: process.stdin });
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     try {
       let answer;
       while (!answer) {
@@ -89,7 +112,12 @@ export class HealthAssistantThread {
     });
   }
 
+  /**
+   * Clear the state of the thread and initialize with base system messages.
+   * System messages define the behavior and knowledge of the bot.
+   */
   private init() {
+    this.patientData = undefined;
     this.messages = [
       {
         actor: ThreadActor.System,
