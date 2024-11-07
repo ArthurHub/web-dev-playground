@@ -29,8 +29,11 @@
     "forceConsistentCasingInFileNames": true,
 
     // interop
-    "verbatimModuleSyntax": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
 
     // handle libs: only know of node global env types
     "lib": ["ES2022", "DOM"],

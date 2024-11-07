@@ -2,14 +2,16 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "Node16",
+    "moduleResolution": "Node16",
+
+    // output
     "outDir": "./dist",
     "rootDir": "./src",
-    "moduleResolution": "Node16",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "sourceMap": true,
-    "skipDefaultLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+
     // stronger type checking
     "strict": true,
     "alwaysStrict": true,
@@ -23,9 +25,18 @@
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": true,
+    "skipDefaultLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // interop
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
     // handle libs: only know of node global env types
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "types": ["node"]
-  },
-  "include": ["./src/**/*"]
+  }
 }
