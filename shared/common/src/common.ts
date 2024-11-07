@@ -12,11 +12,14 @@
 // ArthurHub, 2024
 
 // TODO: understand "unknown" type error handling
-export function getFriendlyError(error: unknown): string {
-  if (error instanceof Error) {
-    return `${error.name}: ${error.message} + ${error.cause ? String(error.cause) : ''} ${
-      error.stack ? `\n${error.stack}` : ''
-    }`;
+export function handleErrorUnknown(ex: unknown): Error {
+  if (ex instanceof Error) {
+    return ex;
+  } else if (typeof ex === 'string') {
+    return new Error(ex);
   }
-  return 'An error occurred: ' + String(error ?? 'Unknown');
+  // return `${ex.name}: ${ex.message} + ${ex.cause ? String(ex.cause) : ''} ${
+  //   ex.stack ? `\n${ex.stack}` : ''
+  // }`;
+  return new Error(`An error with info: "${String(ex ?? 'Unknown')}"`);
 }

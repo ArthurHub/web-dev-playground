@@ -20,9 +20,9 @@
       "request": "launch",
       "name": "Blog transfer",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}\\blog-transfer\\src\\main.ts",
+      "program": "${workspaceFolder}\\projects\\blog-transfer\\src\\main.ts",
       "preLaunchTask": "tsc: build - blog-transfer",
-      "outFiles": ["${workspaceFolder}/blog-transfer/dist/**/*.js"],
+      "outFiles": ["${workspaceFolder}/projects/blog-transfer/dist/**/*.js"],
       "internalConsoleOptions": "openOnSessionStart"
     },
     {

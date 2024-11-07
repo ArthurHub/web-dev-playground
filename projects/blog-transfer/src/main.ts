@@ -11,16 +11,20 @@
 //
 // ArthurHub, 2024
 
-import { getFriendlyError } from 'common/common.js';
+import { handleErrorUnknown } from 'common/common.js';
 import { updateBlogImages } from './image-source-updater.js';
 
 async function main(): Promise<void> {
   try {
     const blogPostFolder = '/Stuff/github/testing-blog-transfer/blog/posts';
     const imagesResourceFolder = '/Stuff/github/testing-blog-transfer/blog/resources';
-    await updateBlogImages(blogPostFolder, imagesResourceFolder);
-  } catch (error) {
-    console.error(`Failed toplevel execution: ${getFriendlyError(error)}`);
+    await updateBlogImages(blogPostFolder, imagesResourceFolder, {
+      downloadImages: true,
+      writeChanges: false,
+    });
+  } catch (ex) {
+    const error = handleErrorUnknown(ex);
+    console.error(`Failed toplevel execution: ${error}`);
     throw error;
   }
 }

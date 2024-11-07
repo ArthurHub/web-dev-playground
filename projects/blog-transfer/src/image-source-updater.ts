@@ -15,7 +15,7 @@ import { promises } from 'fs';
 import * as path from 'path';
 import { downloadAllImages } from './image-downloader.js';
 import { extractImageSources, type ImageInfo } from './image-source-extractor.js';
-import { getFriendlyError } from 'common/common.js';
+import { handleErrorUnknown } from 'common/common.js';
 
 interface ImageInfoExt extends ImageInfo {
   fixedSource: string;
@@ -26,13 +26,13 @@ interface ImageInfoExt extends ImageInfo {
 export async function updateBlogImages(
   blogPostFolder: string,
   imagesResourceFolder: string,
-): Promise<void> {
-  await updateBlogImagesImpl(blogPostFolder, imagesResourceFolder);
-}
-
-async function updateBlogImagesImpl(
-  blogPostFolder: string,
-  imagesResourceFolder: string,
+  options: {
+    downloadImages?: boolean;
+    writeChanges?: boolean;
+  } = {
+    downloadImages: true,
+    writeChanges: false,
+  },
 ): Promise<void> {
   console.log('Run extractImageSources...');
   const images = await extractImageSources(blogPostFolder);
@@ -45,16 +45,24 @@ async function updateBlogImagesImpl(
 
   const imagesExt = fixImagesSource(images, imagesResourceFolder);
 
-  await downloadAllImages(
-    imagesExt.map((img) => {
-      return { in: img.fixedSource, out: img.output };
-    }),
-  );
+  if (options.downloadImages) {
+    await downloadAllImages(
+      imagesExt.map((img) => {
+        return { in: img.fixedSource, out: img.output };
+      }),
+    );
 
-  const fileCount = await promises.readdir(imagesResourceFolder);
-  console.log(`Images downloaded successfully, files: ${fileCount.length}`);
+    const fileCount = await promises.readdir(imagesResourceFolder);
+    console.log(`Images downloaded successfully, files: ${fileCount.length}`);
+  } else {
+    console.log('Download images skipped due to downloadImages option');
+  }
 
-  await updateImageSourceInMarkdown(imagesExt);
+  if (options.writeChanges) {
+    await updateImageSourceInMarkdown(imagesExt);
+  } else {
+    console.log('Update markdown files skipped due to writeChanges option');
+  }
 }
 
 // Handle URLs that have some extra name at the end
@@ -69,7 +77,7 @@ function fixUrl(urlStr: string): string {
     }
     return urlStr;
   } catch (error) {
-    throw new Error(`Invalid URL: ${urlStr}. Error: ${getFriendlyError(error)}`);
+    throw new Error(`Invalid URL: ${urlStr}. Error: ${handleErrorUnknown(error)}`);
   }
 }
 

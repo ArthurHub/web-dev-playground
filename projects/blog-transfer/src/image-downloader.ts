@@ -21,7 +21,7 @@ import * as fs from 'fs';
 import * as https from 'https';
 import * as http from 'http';
 import { URL } from 'url';
-import { getFriendlyError } from 'common/common.js';
+import { handleErrorUnknown } from 'common/common.js';
 
 export interface DownloadInfo {
   in: string;
@@ -87,6 +87,6 @@ function getUrl(urlStr: string): URL {
   try {
     return new URL(urlStr);
   } catch (error) {
-    throw new Error(`Invalid URL: ${urlStr}. Error: ${getFriendlyError(error)}`);
+    throw new Error(`Invalid URL: ${urlStr}. Error: ${handleErrorUnknown(error)}`);
   }
 }
