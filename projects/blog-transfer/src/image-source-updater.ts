@@ -14,8 +14,8 @@
 import { promises } from 'fs';
 import * as path from 'path';
 import { downloadAllImages } from './image-downloader.js';
-import { extractImageSources, ImageInfo } from './image-source-extractor.js';
-import { getFriendlyError } from '..//../libs/common/src/common.js';
+import { extractImageSources, type ImageInfo } from './image-source-extractor.js';
+import { getFriendlyError } from 'common/common.js';
 
 interface ImageInfoExt extends ImageInfo {
   fixedSource: string;
@@ -23,9 +23,10 @@ interface ImageInfoExt extends ImageInfo {
   output: string;
 }
 
-export async function updateBlogImages(): Promise<void> {
-  const blogPostFolder = '/Stuff/github/the-art-of-dev/blog/posts';
-  const imagesResourceFolder = '/Stuff/github/the-art-of-dev/blog/resources';
+export async function updateBlogImages(
+  blogPostFolder: string,
+  imagesResourceFolder: string,
+): Promise<void> {
   await updateBlogImagesImpl(blogPostFolder, imagesResourceFolder);
 }
 

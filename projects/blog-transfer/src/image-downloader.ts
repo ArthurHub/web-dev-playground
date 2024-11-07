@@ -21,7 +21,7 @@ import * as fs from 'fs';
 import * as https from 'https';
 import * as http from 'http';
 import { URL } from 'url';
-import { getFriendlyError } from '..//../libs/common/src/common.js';
+import { getFriendlyError } from 'common/common.js';
 
 export interface DownloadInfo {
   in: string;

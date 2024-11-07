@@ -11,12 +11,14 @@
 //
 // ArthurHub, 2024
 
-import { getFriendlyError } from '../../libs/common/src/common.js';
+import { getFriendlyError } from 'common/common.js';
 import { updateBlogImages } from './image-source-updater.js';
 
 async function main(): Promise<void> {
   try {
-    await updateBlogImages();
+    const blogPostFolder = '/Stuff/github/testing-blog-transfer/blog/posts';
+    const imagesResourceFolder = '/Stuff/github/testing-blog-transfer/blog/resources';
+    await updateBlogImages(blogPostFolder, imagesResourceFolder);
   } catch (error) {
     console.error(`Failed toplevel execution: ${getFriendlyError(error)}`);
     throw error;

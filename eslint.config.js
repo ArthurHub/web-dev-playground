@@ -7,9 +7,11 @@ export default tseslint.config(
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
+    ignorePatterns: ['eslint.config.js'],
     languageOptions: {
       globals: {
         ...globals.node,
+        NodeJS: true,
       },
       parserOptions: {
         parser: '@typescript-eslint/parser',
@@ -31,6 +33,7 @@ export default tseslint.config(
         },
       ],
       '@typescript-eslint/prefer-function-type': 'warn',
+      '@typescript-eslint/no-inferrable-types': 'off',
     },
     files: ['**/*.ts', '**/*.tsx'],
   },
