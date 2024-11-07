@@ -5,6 +5,8 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "moduleResolution": "Node16",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "sourceMap": true,
     "skipDefaultLibCheck": true,
     "forceConsistentCasingInFileNames": true,

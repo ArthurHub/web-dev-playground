@@ -4,7 +4,7 @@ import * as esbuild from 'esbuild';
 await esbuild.build({
   bundle: true,
   entryPoints: ['src/main.ts'],
-  outfile: 'dist/bundle.js',
+  outfile: 'bundle/esbundle.js',
   target: 'node20',
   format: 'esm',
   external: ['readline'],
