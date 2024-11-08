@@ -12,7 +12,6 @@
       "program": "${workspaceFolder}\\chatbot-exercise\\src\\main.ts",
       "cwd": "${workspaceFolder}/projects/chatbot-exercise/dist",
       "preLaunchTask": "tsc: build - chatbot",
-      "outFiles": ["${workspaceFolder}/chatbot-exercise/dist/**/*.js"],
       // "internalConsoleOptions": "openOnSessionStart",
       "console": "integratedTerminal"
     },
@@ -24,7 +23,6 @@
       "program": "${workspaceFolder}\\projects\\blog-transfer\\src\\main.ts",
       "cwd": "${workspaceFolder}/projects/blog-transfer/dist",
       "preLaunchTask": "tsc: build - blog-transfer",
-      "outFiles": ["${workspaceFolder}/projects/blog-transfer/dist/**/*.js"],
       "internalConsoleOptions": "openOnSessionStart", // open the debug console when starting the debug session instead of being on the terminal
       "outputCapture": "std" // send process.stdout to the debug console for pino logger to show logs there
     },

@@ -2,8 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import pino from 'pino';
 
+const logLevel = process.env['LOG_LEVEL'] || 'debug';
+
 const pinoLogger = pino.default({
-  level: process.env['LOG_LEVEL'] || 'debug', // default log level
+  level: logLevel, // default log level
   transport: {
     targets: [
       {
@@ -21,11 +23,11 @@ const pinoLogger = pino.default({
         level: 'info',
         options: { destination: './logs/info.log' },
       },
-      //   {
-      //     target: 'pino/file', // log errors to file
-      //     level: 'error',
-      //     options: { destination: './logs/error.log' },
-      //   },
+      {
+        target: 'pino/file', // log errors to file
+        level: 'error',
+        options: { destination: './logs/error.log' },
+      },
       //   { // file with rolling functionality
       //     target: 'pino-roll',
       //     options: { file: '.logs/info.log', frequency: 'daily', mkdir: true }
@@ -72,18 +74,21 @@ class ProxyLogger {
   };
 }
 
+/** Global logger without a name */
+export const logger = new ProxyLogger(pinoLogger);
+
 function init(): void {
-  const logDir = path.join(process.cwd(), 'logs');
+  const cwd = process.cwd();
+  const logDir = path.join(cwd, 'logs');
 
   // Ensure the 'logs' directory exists
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
+
+  logger.warn({ cwd: cwd, logLevel: logLevel }, 'Execution start, logger initialized:');
 }
 init();
-
-/** Global logger without a name */
-export const logger = new ProxyLogger(pinoLogger);
 
 /** Child logger with specific name and potentially custom properties */
 export function getLogger(name: string): ProxyLogger {

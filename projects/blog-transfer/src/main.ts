@@ -26,7 +26,7 @@ async function main(): Promise<void> {
     });
   } catch (ex) {
     const error = handleErrorUnknown(ex);
-    logger.error(`Failed toplevel execution: ${error}`);
+    logger.error(error, 'Failed toplevel execution');
     throw error;
   }
 }
