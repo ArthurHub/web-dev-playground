@@ -2,7 +2,8 @@
   "private": true,
   "name": "root-workspace",
   "scripts": {
-    "clean": "tsc --build --clean && rimraf -g \"./shared/*/dist\"",
+    "reinstall": "rm -rf node_modules && npm install",
+    "clean": "tsc --build --clean",
     "build": "tsc --build",
     "lint": "eslint",
     "pretest": "npm run lint && npm run build",

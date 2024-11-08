@@ -13,9 +13,11 @@
 
 import { handleErrorUnknown } from 'common/common.js';
 import { updateBlogImages } from './image-source-updater.js';
+import { logger } from 'common/logger.js';
 
 async function main(): Promise<void> {
   try {
+    logger.info('Starting main execution...');
     const blogPostFolder = '/Stuff/github/testing-blog-transfer/blog/posts';
     const imagesResourceFolder = '/Stuff/github/testing-blog-transfer/blog/resources';
     await updateBlogImages(blogPostFolder, imagesResourceFolder, {
@@ -24,7 +26,7 @@ async function main(): Promise<void> {
     });
   } catch (ex) {
     const error = handleErrorUnknown(ex);
-    console.error(`Failed toplevel execution: ${error}`);
+    logger.error(`Failed toplevel execution: ${error}`);
     throw error;
   }
 }

@@ -22,6 +22,9 @@ import * as https from 'https';
 import * as http from 'http';
 import { URL } from 'url';
 import { handleErrorUnknown } from 'common/common.js';
+import { getLogger } from 'common/logger.js';
+
+const logger = getLogger('image-downloader');
 
 export interface DownloadInfo {
   in: string;
@@ -36,7 +39,7 @@ export async function downloadAllImages(images: DownloadInfo[]): Promise<void> {
 async function downloadImage(imageSource: DownloadInfo): Promise<void> {
   // Check if the image already exists
   if (fs.existsSync(imageSource.out)) {
-    console.log(`Image already exists: ${imageSource.out}`);
+    logger.debug(`Image already exists: ${imageSource.out}`);
     return;
   }
 
@@ -57,7 +60,7 @@ async function downloadFromUrl(urlStr: string, outputPath: string): Promise<void
 
           fileStream.on('finish', () => {
             fileStream.close();
-            console.log(`Downloaded image: ${outputPath}`);
+            logger.info(`Downloaded image: ${outputPath}`);
             resolve();
           });
         } else if (

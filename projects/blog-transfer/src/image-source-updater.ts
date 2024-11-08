@@ -16,6 +16,9 @@ import * as path from 'path';
 import { downloadAllImages } from './image-downloader.js';
 import { extractImageSources, type ImageInfo } from './image-source-extractor.js';
 import { handleErrorUnknown } from 'common/common.js';
+import { getLogger } from 'common/logger.js';
+
+const logger = getLogger('image-source-updater');
 
 interface ImageInfoExt extends ImageInfo {
   fixedSource: string;
@@ -34,11 +37,11 @@ export async function updateBlogImages(
     writeChanges: false,
   },
 ): Promise<void> {
-  console.log('Run extractImageSources...');
+  logger.info('Run extractImageSources...');
   const images = await extractImageSources(blogPostFolder);
 
-  console.log(`Extracted ${images.length} images`);
-  console.log(images[0]);
+  logger.info(`Extracted ${images.length} images`);
+  logger.debug(images[0]);
 
   // Ensure the output directory exists
   await promises.mkdir(imagesResourceFolder, { recursive: true });
@@ -53,15 +56,15 @@ export async function updateBlogImages(
     );
 
     const fileCount = await promises.readdir(imagesResourceFolder);
-    console.log(`Images downloaded successfully, files: ${fileCount.length}`);
+    logger.info(`Images downloaded successfully, files: ${fileCount.length}`);
   } else {
-    console.log('Download images skipped due to downloadImages option');
+    logger.warn('Download images skipped due to downloadImages option');
   }
 
   if (options.writeChanges) {
     await updateImageSourceInMarkdown(imagesExt);
   } else {
-    console.log('Update markdown files skipped due to writeChanges option');
+    logger.warn('Update markdown files skipped due to writeChanges option');
   }
 }
 
@@ -121,7 +124,7 @@ async function updateImageSourceInMarkdown(images: ImageInfoExt[]): Promise<void
   await Promise.all(
     Array.from(imagesByFilePath.entries()).map(async ([filePath, images]) => {
       await updateSourceInFile(filePath, images);
-      console.log(`Updated ${filePath}`);
+      logger.debug(`Updated ${filePath}`);
     }),
   );
 }

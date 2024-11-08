@@ -3,7 +3,13 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    "./common.js": "./dist/common.js"
+    "./*": "./dist/*"
   },
-  "dependencies": {}
+  "dependencies": {
+    "pino": "^9.5.0"
+  },
+  "devDependencies": {
+    "@types/pino": "^7.0.5",
+    "pino-pretty": "^12.0.0"
+  }
 }

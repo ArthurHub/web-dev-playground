@@ -1,8 +1,8 @@
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import OpenAI from 'openai';
-import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
-import { PatientData, ThreadActor, ThreadMessage } from './entities.js';
+import { type ChatCompletionMessageParam } from 'openai/resources/index.mjs';
+import { type PatientData, ThreadActor, type ThreadMessage } from './entities.js';
 
 /**
  * OpenAI client wrapper to encapsulate OpenAI APIs for Health Assistant.

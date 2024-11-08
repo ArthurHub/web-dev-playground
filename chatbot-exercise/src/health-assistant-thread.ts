@@ -1,4 +1,4 @@
-import { PatientData, ThreadActor, ThreadMessage } from './entities.js';
+import { type PatientData, ThreadActor, type ThreadMessage } from './entities.js';
 import { HealthAssistantClient } from './health-assistant-client.js';
 import * as readline from 'readline/promises';
 
