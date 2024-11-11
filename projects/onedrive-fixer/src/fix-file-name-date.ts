@@ -11,42 +11,29 @@
 //
 // ArthurHub, 2024
 
-import { promises as fs } from 'fs';
+import { Dirent, promises as fs } from 'fs';
 import { join } from 'path';
 import { exiftool } from 'exiftool-vendored';
 import { getLogger } from 'common/logger.js';
+import { iterateFiles, iterateFilesByExtensionFilter } from 'common/filesystem.js';
 
-const supportedExtensions = ['.jpg', '.jpeg', '.png', '.mp4', '.mov'];
+/**
+ * The media files extensions supported by this script.
+ */
+const supportedExtensions = ['.heic', '.jpg', '.jpeg', '.png', '.mp4', '.mov'];
 
 const logger = getLogger('fix-file-name-date');
 
 export async function updateFileNames(folderPath: string): Promise<void> {
   try {
-    await iterateFiles(folderPath);
+    await iterateFiles(folderPath, processFile, iterateFilesByExtensionFilter(supportedExtensions));
   } catch (error) {
     logger.fatal(error, 'Error updating file names:');
   }
 }
 
-async function iterateFiles(folderPath: string): Promise<void> {
-  const files = await fs.readdir(folderPath, { withFileTypes: true });
-
-  for (const file of files) {
-    const filePath = join(folderPath, file.name);
-    if (file.isDirectory()) {
-      await iterateFiles(filePath);
-    } else if (isSupportedFile(file.name)) {
-      await processFile(filePath);
-    }
-  }
-}
-
-function isSupportedFile(fileName: string): boolean {
-  const ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
-  return supportedExtensions.includes(ext);
-}
-
-async function processFile(filePath: string): Promise<void> {
+async function processFile(file: Dirent): Promise<void> {
+  const filePath = join(file.parentPath, file.name);
   try {
     const metadata = await exiftool.read(filePath);
     const isIphone = metadata.Make?.toLowerCase().includes('apple');
