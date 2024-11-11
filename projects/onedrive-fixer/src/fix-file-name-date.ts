@@ -13,14 +13,14 @@
 
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { exiftool, type Tags } from 'exiftool-vendored';
+import { exiftool } from 'exiftool-vendored';
 import { getLogger } from 'common/logger.js';
 
 const supportedExtensions = ['.jpg', '.jpeg', '.png', '.mp4', '.mov'];
 
 const logger = getLogger('fix-file-name-date');
 
-export async function updateFileNames(folderPath: string) {
+export async function updateFileNames(folderPath: string): Promise<void> {
   try {
     await iterateFiles(folderPath);
   } catch (error) {
@@ -28,7 +28,7 @@ export async function updateFileNames(folderPath: string) {
   }
 }
 
-async function iterateFiles(folderPath: string) {
+async function iterateFiles(folderPath: string): Promise<void> {
   const files = await fs.readdir(folderPath, { withFileTypes: true });
 
   for (const file of files) {
@@ -46,9 +46,9 @@ function isSupportedFile(fileName: string): boolean {
   return supportedExtensions.includes(ext);
 }
 
-async function processFile(filePath: string) {
+async function processFile(filePath: string): Promise<void> {
   try {
-    const metadata = (await exiftool.read(filePath)) as Tags;
+    const metadata = await exiftool.read(filePath);
     const isIphone = metadata.Make?.toLowerCase().includes('apple');
 
     if (isIphone && metadata.CreateDate) {
@@ -66,7 +66,7 @@ async function processFile(filePath: string) {
 
 function parseDateFromFileName(filePath: string): Date | null {
   const regex = /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/;
-  const match = filePath.match(regex);
+  const match = regex.exec(filePath);
   if (match) {
     const [, year, month, day, hour, minute, second] = match;
     return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
@@ -74,7 +74,7 @@ function parseDateFromFileName(filePath: string): Date | null {
   return null;
 }
 
-async function renameFile(filePath: string, creationDate: Date) {
+async function renameFile(filePath: string, creationDate: Date): Promise<void> {
   const folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
   const fileExtension = filePath.substring(filePath.lastIndexOf('.'));
   const formattedDate = formatDateForFileName(creationDate);

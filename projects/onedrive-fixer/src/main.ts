@@ -14,12 +14,12 @@
 import { logger } from 'common/logger.js';
 import { updateFileNames } from './fix-file-name-date.js';
 
-function main() {
+async function main(): Promise<void> {
   try {
-    updateFileNames('../test-data');
+    await updateFileNames('../test-data');
   } catch (error) {
     logger.fatal(error, 'Failed running OneDrive fixer');
   }
 }
 
-main();
+await main();
