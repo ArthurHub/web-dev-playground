@@ -16,7 +16,7 @@ import { updateFileNames } from './fix-file-name-date.js';
 
 async function main(): Promise<void> {
   try {
-    await updateFileNames('../test-data');
+    await updateFileNames('../test-data', true);
   } catch (error) {
     logger.fatal(error, 'Failed running OneDrive fixer');
   }
