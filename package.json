@@ -1,6 +1,7 @@
 {
   "private": true,
   "name": "root-workspace",
+  "type": "module",
   "scripts": {
     "reinstall": "rm -rf node_modules && npm install",
     "clean": "tsc --build --clean",

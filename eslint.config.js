@@ -7,7 +7,6 @@ export default tseslint.config(
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
-    ignorePatterns: ['eslint.config.js'],
     languageOptions: {
       globals: {
         ...globals.node,
