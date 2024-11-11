@@ -23,6 +23,16 @@
     },
     {
       "type": "typescript",
+      "tsconfig": "projects/onedrive-fixer/tsconfig.json",
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "label": "tsc: build - onedrive-fixer"
+    },
+    {
+      "type": "typescript",
       "tsconfig": "typescript-learn/tsconfig.json",
       "problemMatcher": ["$tsc"],
       "group": {

@@ -1,0 +1,14 @@
+{
+  "name": "onedrive-fixer",
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "common": "0.1.0",
+    "exiftool-vendored": "^29.0.0"
+  },
+  "scripts": {
+    "clean": "tsc --build --clean",
+    "build": "tsc --build",
+    "start": "npm run build && node dist/main.js"
+  }
+}
