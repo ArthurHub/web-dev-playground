@@ -12,14 +12,49 @@
 // ArthurHub, 2024
 
 import { logger } from 'common/logger.js';
-import { updateFileNames } from './fix-file-name-date.js';
+import { OneDriveNameDateFixer } from './onedrive-name-date-fixer.js';
+import { OneDriveFixedFileStatus, type OneDriveFixedFile } from './entities.js';
 
 async function main(): Promise<void> {
   try {
-    await updateFileNames('../test-data', true);
+    const handledFiles = await OneDriveNameDateFixer.updateFileNames('../test-data', true);
+
+    const {
+      updated,
+      noUpdateRequired,
+      SkippedNotIPhone: skippedNotIPhone,
+    } = getCounts(handledFiles);
+    logger.info(
+      'Finished running OneDrive fixer handling %d files: %d updated, %d no update required, %d not iPhone, %d other',
+      handledFiles.length,
+      updated,
+      noUpdateRequired,
+      skippedNotIPhone,
+      handledFiles.length - updated - noUpdateRequired,
+    );
   } catch (error) {
     logger.fatal(error, 'Failed running OneDrive fixer');
   }
+}
+
+function getCounts(handledFiles: OneDriveFixedFile[]): {
+  updated: number;
+  noUpdateRequired: number;
+  SkippedNotIPhone: number;
+} {
+  let updated = 0;
+  let noUpdateRequired = 0;
+  let SkippedNotIPhone = 0;
+  for (const file of handledFiles) {
+    if (file.status === OneDriveFixedFileStatus.Updated) {
+      updated++;
+    } else if (file.status === OneDriveFixedFileStatus.NoUpdateRequired) {
+      noUpdateRequired++;
+    } else if (file.status === OneDriveFixedFileStatus.SkippedNotIPhone) {
+      SkippedNotIPhone++;
+    }
+  }
+  return { updated, noUpdateRequired, SkippedNotIPhone };
 }
 
 await main();
