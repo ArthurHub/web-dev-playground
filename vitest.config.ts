@@ -4,7 +4,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
+    restoreMocks: true,
     environment: 'node',
-    include: ['**/tests/**/*.test.ts'], // Adjust the pattern to match your test files
+    setupFiles: ['./shared/common/tests/setup/setup-test-env.ts'],
+    include: ['**/tests/**/*.test.ts'],
   },
 });
