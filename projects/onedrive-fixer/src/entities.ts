@@ -3,6 +3,7 @@ import type { Dirent } from 'fs';
 export interface OneDriveFixedFile {
   file: Dirent;
   status: OneDriveFixedFileStatus;
+  updateName?: string;
   error?: unknown;
 }
 

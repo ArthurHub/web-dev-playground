@@ -136,7 +136,11 @@ export class OneDriveNameDateFixer {
         );
         logger.info('File name updated: "%s" --> "%s"', file.name, newFileName);
       }
-      this.handledFiles.push({ file, status: OneDriveFixedFileStatus.Updated });
+      this.handledFiles.push({
+        file,
+        status: OneDriveFixedFileStatus.Updated,
+        updateName: newFileName,
+      });
     } catch (error) {
       this.handledFiles.push({ file, status: OneDriveFixedFileStatus.Error, error });
       console.error([error, filePath], 'Error processing file %s', file.name);

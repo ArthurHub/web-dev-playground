@@ -23,7 +23,18 @@ describe('OneDriveNameDateFixer', () => {
     );
 
     expect(updated.length).toEqual(2);
+    for (const file of updated) {
+      expect(['20220412_132854446_iOS.jpg', '20241101_094622039_iOS.heic']).toContain(
+        file.updateName,
+      );
+    }
+
     expect(noUpdateRequired.length).toEqual(1);
+    expect(noUpdateRequired[0].file.name).toEqual('20231202_104509_739_iOS.heic');
+    expect(noUpdateRequired[0].updateName).toBeUndefined();
+
     expect(skippedNotIPhone.length).toEqual(1);
+    expect(skippedNotIPhone[0].file.name).toEqual('20231210_095729.jpg');
+    expect(skippedNotIPhone[0].updateName).toBeUndefined();
   });
 });

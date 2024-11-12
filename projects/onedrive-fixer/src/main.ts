@@ -40,17 +40,17 @@ function getCounts(handledFiles: OneDriveFixedFile[]): {
 } {
   let updated = 0;
   let noUpdateRequired = 0;
-  let SkippedNotIPhone = 0;
+  let skippedNotIPhone = 0;
   for (const file of handledFiles) {
     if (file.status === OneDriveFixedFileStatus.Updated) {
       updated++;
     } else if (file.status === OneDriveFixedFileStatus.NoUpdateRequired) {
       noUpdateRequired++;
     } else if (file.status === OneDriveFixedFileStatus.SkippedNotIPhone) {
-      SkippedNotIPhone++;
+      skippedNotIPhone++;
     }
   }
-  return { updated, noUpdateRequired, SkippedNotIPhone };
+  return { updated, noUpdateRequired, skippedNotIPhone };
 }
 
 await main();
