@@ -13,9 +13,10 @@
 
 import { Dirent, promises as fs } from 'fs';
 import { extname, join, resolve } from 'path';
-import { ExifDateTime, exiftool } from 'exiftool-vendored';
+import { exiftool } from 'exiftool-vendored';
 import { getLogger } from 'common/logger.js';
 import { OneDriveFixedFileStatus, type OneDriveFixedFile } from './entities.js';
+import { compareIgnoreCase, getDateIgnoreTimezone } from 'common/common.js';
 
 const logger = getLogger('name-date-fixer');
 
@@ -94,11 +95,9 @@ export class OneDriveNameDateFixer {
     const filePath = join(file.parentPath, file.name);
     try {
       const metadata = await exiftool.read(filePath);
-      const isIphone = IPHONE_MAKE.localeCompare(metadata.Make ?? '', 'en', {
-        sensitivity: 'base',
-      });
+      const isIphone = compareIgnoreCase(IPHONE_MAKE, metadata.Make);
 
-      if (isIphone !== 0) {
+      if (!isIphone) {
         this.handledFiles.push({ file, status: OneDriveFixedFileStatus.SkippedNotIPhone });
         logger.debug(`Skipping non-iPhone file "${file.name}"`);
         return;
@@ -110,7 +109,7 @@ export class OneDriveNameDateFixer {
         return;
       }
 
-      const fileCreationDate = this.getDateIgnoreTimezone(metadata.CreateDate);
+      const fileCreationDate = getDateIgnoreTimezone(metadata.CreateDate.toString());
       const fileNameCreationDate = this.parseDateFromFileName(filePath);
 
       if (!fileNameCreationDate) {
@@ -142,18 +141,6 @@ export class OneDriveNameDateFixer {
       this.handledFiles.push({ file, status: OneDriveFixedFileStatus.Error, error });
       console.error([error, filePath], 'Error processing file %s', file.name);
     }
-  }
-
-  /** Get the Exif date ignoring the timezone in it */
-  private getDateIgnoreTimezone(exifDate: ExifDateTime | string): Date {
-    let dateString = exifDate instanceof ExifDateTime ? exifDate.toString() ?? '' : exifDate;
-
-    // if timezone is present, remove it
-    const timezoneIdx = dateString.lastIndexOf('+');
-    dateString = timezoneIdx === -1 ? dateString : dateString.substring(0, timezoneIdx);
-
-    // this will create the Date adjusted to the local timezone
-    return new Date(dateString);
   }
 
   parseDateFromFileName(filePath: string): Date | null {
