@@ -19,11 +19,7 @@ async function main(): Promise<void> {
   try {
     const handledFiles = await OneDriveNameDateFixer.updateFileNames('../tests/media', true);
 
-    const {
-      updated,
-      noUpdateRequired,
-      SkippedNotIPhone: skippedNotIPhone,
-    } = getCounts(handledFiles);
+    const { updated, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
     logger.info(
       'Finished running OneDrive fixer handling %d files: %d updated, %d no update required, %d not iPhone, %d other',
       handledFiles.length,
@@ -40,7 +36,7 @@ async function main(): Promise<void> {
 function getCounts(handledFiles: OneDriveFixedFile[]): {
   updated: number;
   noUpdateRequired: number;
-  SkippedNotIPhone: number;
+  skippedNotIPhone: number;
 } {
   let updated = 0;
   let noUpdateRequired = 0;
