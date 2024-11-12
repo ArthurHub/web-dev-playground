@@ -8,8 +8,8 @@
     "build": "tsc --build",
     "lint": "eslint",
     "pretest": "npm run lint && npm run build",
-    "test": "npm run test:only",
-    "test:only": "vitest",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
     "start": "npm run start",
     "prettify": "prettier . --write"
   },

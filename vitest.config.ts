@@ -7,6 +7,9 @@ export default defineConfig({
     restoreMocks: true,
     environment: 'node',
     setupFiles: ['./shared/common/tests/setup/setup-test-env.ts'],
-    include: ['**/tests/**/*.test.ts'],
+    include: ['projects/**/tests/**/*.test.ts', 'shared/**/tests/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+    },
   },
 });

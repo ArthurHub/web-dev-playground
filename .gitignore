@@ -47,3 +47,4 @@ ehthumbs.db
 .env.local
 .env.*.local
 .parcel-cache
+coverage
