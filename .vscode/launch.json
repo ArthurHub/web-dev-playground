@@ -34,7 +34,8 @@
       "program": "${workspaceFolder}\\projects\\onedrive-fixer\\src\\main.ts",
       "cwd": "${workspaceFolder}/projects/onedrive-fixer/dist",
       "preLaunchTask": "tsc: build - onedrive-fixer",
-      "internalConsoleOptions": "openOnSessionStart", // open the debug console when starting the debug session instead of being on the terminal
+      "console": "integratedTerminal",
+      // "internalConsoleOptions": "openOnSessionStart", // open the debug console when starting the debug session instead of being on the terminal
       "outputCapture": "std" // send process.stdout to the debug console for pino logger to show logs there
     },
     {
