@@ -30,7 +30,7 @@ async function main(): Promise<void> {
       updated,
       noUpdateRequired,
       skippedNotIPhone,
-      handledFiles.length - updated - noUpdateRequired,
+      handledFiles.length - updated - noUpdateRequired - skippedNotIPhone,
     );
   } catch (error) {
     logger.fatal(error, 'Failed running OneDrive fixer');

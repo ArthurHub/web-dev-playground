@@ -13,7 +13,7 @@
 
 import { Dirent, promises as fs } from 'fs';
 import { extname, join, resolve } from 'path';
-import { exiftool } from 'exiftool-vendored';
+import { ExifDateTime, exiftool } from 'exiftool-vendored';
 import { getLogger } from 'common/logger.js';
 import { OneDriveFixedFileStatus, type OneDriveFixedFile } from './entities.js';
 
@@ -37,6 +37,14 @@ const IPHONE_MAKE = 'apple';
  * compare the two
  * if they are different: update the name of the file with the correct date
  * date format in the file name is: yyyyMMdd_hhmmss
+ *
+ * Timezone handling:
+ * JS forces use of local timezone when creating a Date object.
+ * The parsed date in the file name doesn't contain timezone so it's fine.
+ * When loading date from exif metadata, it will be adjusted to the local timezone from the
+ * timezone in the metadata. We don't want it as we want the two to match.
+ * The easiest is to remove the timezone info from exif metadata date before loading it into a Date object.
+ * Then we can compare the two dates in current local timezone with same result as if we compared them original timezone.
  */
 export class OneDriveNameDateFixer {
   private readonly dryRun: boolean;
@@ -86,9 +94,11 @@ export class OneDriveNameDateFixer {
     const filePath = join(file.parentPath, file.name);
     try {
       const metadata = await exiftool.read(filePath);
-      const isIphone = IPHONE_MAKE.localeCompare(metadata.Make ?? '');
+      const isIphone = IPHONE_MAKE.localeCompare(metadata.Make ?? '', 'en', {
+        sensitivity: 'base',
+      });
 
-      if (!isIphone) {
+      if (isIphone !== 0) {
         this.handledFiles.push({ file, status: OneDriveFixedFileStatus.SkippedNotIPhone });
         logger.debug(`Skipping non-iPhone file "${file.name}"`);
         return;
@@ -100,7 +110,7 @@ export class OneDriveNameDateFixer {
         return;
       }
 
-      const fileCreationDate = new Date(metadata.CreateDate as string);
+      const fileCreationDate = this.getDateIgnoreTimezone(metadata.CreateDate);
       const fileNameCreationDate = this.parseDateFromFileName(filePath);
 
       if (!fileNameCreationDate) {
@@ -132,6 +142,18 @@ export class OneDriveNameDateFixer {
       this.handledFiles.push({ file, status: OneDriveFixedFileStatus.Error, error });
       console.error([error, filePath], 'Error processing file %s', file.name);
     }
+  }
+
+  /** Get the Exif date ignoring the timezone in it */
+  private getDateIgnoreTimezone(exifDate: ExifDateTime | string): Date {
+    let dateString = exifDate instanceof ExifDateTime ? exifDate.toString() ?? '' : exifDate;
+
+    // if timezone is present, remove it
+    const timezoneIdx = dateString.lastIndexOf('+');
+    dateString = timezoneIdx === -1 ? dateString : dateString.substring(0, timezoneIdx);
+
+    // this will create the Date adjusted to the local timezone
+    return new Date(dateString);
   }
 
   parseDateFromFileName(filePath: string): Date | null {
