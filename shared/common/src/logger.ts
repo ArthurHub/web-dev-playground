@@ -16,6 +16,7 @@ const pinoLogger = pino.default({
           colorize: true,
           messageFormat: '[{name}] {msg}',
           destination: 1,
+          ignore: 'hostname,name',
         },
       },
       {
@@ -86,7 +87,8 @@ function init(): void {
     fs.mkdirSync(logDir, { recursive: true });
   }
 
-  logger.warn({ cwd: cwd, logLevel: logLevel }, 'Execution start, logger initialized:');
+  // logger.warn({ cwd: cwd, logLevel: logLevel }, 'Execution start, logger initialized:');
+  // pinoLogger.flush();
 }
 init();
 

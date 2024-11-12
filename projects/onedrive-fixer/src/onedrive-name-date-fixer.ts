@@ -55,16 +55,16 @@ export class OneDriveNameDateFixer {
     this.dryRun = dryRun;
   }
 
-  public static async updateFileNames(
+  public static async fixFileNames(
     folderPath: string,
     dryRun: boolean,
   ): Promise<OneDriveFixedFile[]> {
     const fixer = new OneDriveNameDateFixer(dryRun);
-    await fixer.updateFileNames(folderPath);
+    await fixer.fixFileNames(folderPath);
     return fixer.handledFiles;
   }
 
-  async updateFileNames(folderPath: string): Promise<void> {
+  async fixFileNames(folderPath: string): Promise<void> {
     try {
       logger.info('Starting file name update process in "%s"', resolve(folderPath));
       await this.iterateFiles(folderPath);
