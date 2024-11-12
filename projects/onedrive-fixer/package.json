@@ -9,6 +9,7 @@
   "scripts": {
     "clean": "tsc --build --clean",
     "build": "tsc --build",
-    "start": "npm run build && node dist/main.js"
+    "start": "npm run build && node dist/main.js",
+    "test": "vitest"
   }
 }

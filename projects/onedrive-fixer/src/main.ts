@@ -17,7 +17,7 @@ import { OneDriveFixedFileStatus, type OneDriveFixedFile } from './entities.js';
 
 async function main(): Promise<void> {
   try {
-    const handledFiles = await OneDriveNameDateFixer.updateFileNames('../test-data', true);
+    const handledFiles = await OneDriveNameDateFixer.updateFileNames('../tests/media', true);
 
     const {
       updated,

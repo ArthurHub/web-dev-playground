@@ -35,5 +35,6 @@ export default tseslint.config(
       '@typescript-eslint/no-inferrable-types': 'off',
     },
     files: ['**/*.ts', '**/*.tsx'],
+    ignorePatterns: ['**/*.test.ts', '**/*.test.tsx'],
   },
 );
