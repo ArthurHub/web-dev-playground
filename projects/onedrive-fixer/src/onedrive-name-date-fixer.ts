@@ -84,7 +84,7 @@ export class OneDriveNameDateFixer {
       if (file.isDirectory()) {
         logger.info('Processing folder "%s"', file.name);
         await this.iterateFiles(filePath);
-      } else if (supportedExtensions.includes(extname(file.name))) {
+      } else if (supportedExtensions.includes(extname(file.name).toLowerCase())) {
         await this.processFile(file);
       }
     }
