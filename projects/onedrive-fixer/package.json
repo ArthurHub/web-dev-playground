@@ -11,6 +11,27 @@
     "clean": "tsc --build --clean",
     "build": "tsc --build",
     "start": "npm run build && node dist/main.js",
-    "test": "vitest"
+    "test": "vitest",
+    "bundle-es": "node build.js",
+    "bundle-pkg": "parcel build --no-source-maps --no-cache",
+    "package": "pkg --targets latest-win-x64 dist/bundle/bundle.js --output dist/OneDriveFixer --debug"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "parcel": "^2.13.0",
+    "pkg": "^5.8.1"
+  },
+  "targets": {
+    "default": {
+      "source": "src/main.ts",
+      "distDir": "./dist/bundle",
+      "outputFormat": "esmodule",
+      "context": "node",
+      "includeNodeModules": true,
+      "optimize": false,
+      "engines": {
+        "node": ">=22"
+      }
+    }
   }
 }
