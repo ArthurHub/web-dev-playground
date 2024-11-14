@@ -5,7 +5,9 @@
   "dependencies": {
     "@inquirer/prompts": "^7.1.0",
     "common": "0.1.0",
-    "exiftool-vendored": "^29.0.0"
+    "exiftool-vendored": "^29.0.0",
+    "heic-convert": "^2.1.0",
+    "trash": "^9.0.0"
   },
   "scripts": {
     "clean": "tsc --build --clean",
@@ -17,6 +19,7 @@
     "pkg": "node-runner-pkg"
   },
   "devDependencies": {
+    "@types/heic-convert": "^2.1.0",
     "esbuild": "^0.24.0",
     "parcel": "^2.13.0"
   },

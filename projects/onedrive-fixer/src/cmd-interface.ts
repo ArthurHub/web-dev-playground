@@ -18,6 +18,7 @@ import { OneDriveNameDateFixer } from './onedrive-name-date-fixer.js';
 import { OneDriveFixedFileStatus, type OneDriveFixedFile } from './entities.js';
 import path from 'path';
 import { tmpdir } from 'os';
+import { HEICtoJpegConverter } from './heic-to-jpeg-converter.js';
 
 const logger = getLogger('cmd-interface');
 
@@ -43,7 +44,7 @@ const onedriveFixerDataFile = path.join(tmpdir(), 'onedrive-fixer-data.json');
 export async function runOneDriveFixerCmdUserInterface(): Promise<void> {
   try {
     // TODO: god damn it
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
     let option = await getUserChoice();
     while (option !== Options.Exit) {
@@ -53,6 +54,7 @@ export async function runOneDriveFixerCmdUserInterface(): Promise<void> {
 
       await executeFixOption(option, folderPath, isDryRun);
 
+      await new Promise((resolve) => setTimeout(resolve, 800));
       option = await getUserChoice();
     }
   } catch (error) {
@@ -68,8 +70,7 @@ async function executeFixOption(
   if (option === Options.FixFileNames) {
     await runOneDriveNameDateFixer(folderPath, isDryRun);
   } else {
-    logger.info(`Performing Option B on file: ${folderPath}`);
-    // Add the logic for Option B here
+    await runHEICtoJPEGConverter(folderPath, isDryRun);
   }
 }
 
@@ -159,6 +160,24 @@ function getCounts(handledFiles: OneDriveFixedFile[]): {
     }
   }
   return { updated, noUpdateRequired, skippedNotIPhone };
+}
+
+async function runHEICtoJPEGConverter(folderPath: string, isDryRun: boolean): Promise<void> {
+  logger.info(`Run fix media files names in: "${folderPath}"`);
+  const { convertedPhotos, failedPhotos } = await HEICtoJpegConverter.convertFolder(
+    folderPath,
+    isDryRun,
+  );
+  logger.info(
+    `
+-------------
+Finished running HEIC to JPEG converter: 
+%d converted
+%d failed
+-------------`,
+    convertedPhotos.length,
+    failedPhotos.size,
+  );
 }
 
 // Function to read data, typed with OneDriveFixerData
