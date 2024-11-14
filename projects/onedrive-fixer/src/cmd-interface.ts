@@ -24,6 +24,7 @@ const logger = getLogger('cmd-interface');
 enum Options {
   FixFileNames,
   ConvertHEICtoJPEG,
+  Exit,
 }
 
 /** Simple cache of last used paths */
@@ -41,55 +42,71 @@ const onedriveFixerDataFile = path.join(tmpdir(), 'onedrive-fixer-data.json');
  */
 export async function runOneDriveFixerCmdUserInterface() {
   try {
-    // Step 1: Select an option
-    const option = await select({
-      message: 'Select an option:',
-      choices: [
-        { name: 'Fix OneDrive media file names', value: Options.FixFileNames },
-        { name: 'Convert HEIC photos to JPEG', value: Options.ConvertHEICtoJPEG },
-      ],
-    });
+    while (true) {
+      const option = await getUserChoice();
+      if (option === Options.Exit) {
+        return;
+      }
 
-    let folderPath = '';
+      const folderPath = await promptForFolderPath();
 
-    // read cache data and ask for a previously used path
-    const data = readData();
-    if (data.lastUsedPaths.length) {
-      const choices = data.lastUsedPaths.map((path) => ({ name: path, value: path }));
-      choices.push({ name: 'Other', value: '' });
-      folderPath = await select({
-        message: 'Select a previously used path:',
-        choices,
-      });
-    }
+      const isDryRun = await confirm({ message: 'Dry-run?', default: true });
 
-    // check if we have an existing folder
-    if (!folderPath || !fs.existsSync(folderPath)) {
-      // Ask for file path
-      folderPath = await input({
-        message: 'Enter the folder path to operate on:',
-        validate: (inputValue: string) => {
-          return fs.existsSync(inputValue) ? true : 'The specified file path does not exist.';
-        },
-      });
-    }
-
-    // write the new path to the data
-    writeData(data, folderPath);
-
-    // Ask if dry run
-    const isDryRun = await confirm({ message: 'Dry-run?', default: true });
-
-    // Step 3: Perform action based on selected option
-    if (option === Options.FixFileNames) {
-      await runOneDriveNameDateFixer(folderPath, isDryRun);
-    } else {
-      logger.info(`Performing Option B on file: ${folderPath}`);
-      // Add the logic for Option B here
+      await executeFixOption(option, folderPath, isDryRun);
     }
   } catch (error) {
     logger.error('Error:', error);
   }
+}
+
+async function executeFixOption(option: Options, folderPath: string, isDryRun: boolean) {
+  if (option === Options.FixFileNames) {
+    await runOneDriveNameDateFixer(folderPath, isDryRun);
+  } else {
+    logger.info(`Performing Option B on file: ${folderPath}`);
+    // Add the logic for Option B here
+  }
+}
+
+async function getUserChoice() {
+  return await select({
+    message: 'Select an option:',
+    choices: [
+      { name: 'Fix OneDrive media file names', value: Options.FixFileNames },
+      { name: 'Convert HEIC photos to JPEG', value: Options.ConvertHEICtoJPEG },
+      { name: 'Exit', value: Options.Exit },
+    ],
+  });
+}
+
+async function promptForFolderPath(): Promise<string> {
+  let folderPath = '';
+
+  // read cache data and ask for a previously used path
+  const data = readData();
+  if (data.lastUsedPaths.length) {
+    const choices = data.lastUsedPaths.map((path) => ({ name: path, value: path }));
+    choices.push({ name: 'Other', value: '' });
+    folderPath = await select({
+      message: 'Select a previously used path:',
+      choices,
+    });
+  }
+
+  // check if we have an existing folder
+  if (!folderPath || !fs.existsSync(folderPath)) {
+    // Ask for file path
+    folderPath = await input({
+      message: 'Enter the folder path to operate on:',
+      validate: (inputValue: string) => {
+        return fs.existsSync(inputValue) ? true : 'The specified file path does not exist.';
+      },
+    });
+  }
+
+  // write the new path to the data
+  writeData(data, folderPath);
+  return folderPath;
 }
 
 async function runOneDriveNameDateFixer(filePath: string, isDryRun: boolean): Promise<void> {
