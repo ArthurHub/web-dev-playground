@@ -170,7 +170,7 @@ async function archiveNodeModules(buildDir, assetsDir) {
 async function createNodeExecutable(assetsDir) {
   console.debug('Create node executable pkg..');
   await pkg.exec([
-    'runner.js',
+    'runner.cjs',
     '--target',
     'latest-win-x64',
     '--assets',
