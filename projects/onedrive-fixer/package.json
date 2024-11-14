@@ -12,14 +12,12 @@
     "build": "tsc --build",
     "start": "npm run build && node dist/main.js",
     "test": "vitest",
-    "bundle-es": "npm run build && node build.js",
-    "bundle-pkg": "parcel build --no-source-maps --no-cache",
-    "package": "pkg --targets latest-win-x64 dist/bundle/bundle.mjs --output dist/OneDriveFixer --debug"
+    "bundle": "npm run build && node build.js",
+    "bundle-parcel": "parcel build --no-source-maps --no-cache"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",
-    "parcel": "^2.13.0",
-    "pkg": "^5.8.1"
+    "parcel": "^2.13.0"
   },
   "targets": {
     "default": {

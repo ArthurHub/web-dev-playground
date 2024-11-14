@@ -43,6 +43,9 @@ const onedriveFixerDataFile = path.join(tmpdir(), 'onedrive-fixer-data.json');
 export async function runOneDriveFixerCmdUserInterface() {
   try {
     while (true) {
+      // TODO: god damn it
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const option = await getUserChoice();
       if (option === Options.Exit) {
         return;
