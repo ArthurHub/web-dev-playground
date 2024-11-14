@@ -1,0 +1,13 @@
+{
+  "name": "node-runner",
+  "version": "0.1.0",
+  "scripts": {
+    "package": "rm -f dist/NodeRunner.exe && npm run pkg && npm run nodew && rm dist/NodeRunner_window.exe",
+    "pkg": "pkg --targets latest-win-x64 runner.js --output dist/NodeRunner_window.exe",
+    "nodew": "create-nodew-exe dist/NodeRunner_window.exe dist/NodeRunner.exe"
+  },
+  "devDependencies": {
+    "create-nodew-exe": "^2.1.0",
+    "pkg": "^5.8.1"
+  }
+}
