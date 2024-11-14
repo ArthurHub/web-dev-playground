@@ -2,17 +2,16 @@
   "name": "node-runner",
   "version": "0.1.0",
   "type": "module",
+  "bin": {
+    "node-runner-pkg": "index.js"
+  },
   "dependencies": {
     "archiver": "^7.0.1",
     "decompress": "^4.2.1",
     "pkg": "^5.8.1"
   },
-  "devDependencies": {
-    "create-nodew-exe": "^2.1.0"
-  },
   "scripts": {
     "clean": "rm -rf build/ dist/",
-    "pack": "node index.js",
-    "nodew": "create-nodew-exe dist/node-runner-w.exe dist/node-runner.exe"
+    "pack": "node index.js"
   }
 }

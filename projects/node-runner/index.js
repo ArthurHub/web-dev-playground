@@ -1,3 +1,5 @@
+'use strict';
+
 // Therefore those skilled at the unorthodox
 // are infinite as heaven and earth,
 // inexhaustible as the great rivers.
@@ -170,7 +172,7 @@ async function archiveNodeModules(buildDir, assetsDir) {
 async function createNodeExecutable(assetsDir) {
   console.debug('Create node executable pkg..');
   await pkg.exec([
-    'runner.js',
+    'runner.cjs',
     '--target',
     'latest-win-x64',
     '--assets',

@@ -13,7 +13,8 @@
     "start": "npm run build && node dist/main.js",
     "test": "vitest",
     "bundle": "npm run build && node build.js",
-    "bundle-parcel": "parcel build --no-source-maps --no-cache"
+    "bundle-parcel": "parcel build --no-source-maps --no-cache",
+    "pkg": "node-runner-pkg"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",
