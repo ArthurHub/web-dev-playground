@@ -40,29 +40,31 @@ const onedriveFixerDataFile = path.join(tmpdir(), 'onedrive-fixer-data.json');
  * Ask the user for the folder path to operate on.
  * Use a cache to store the last used paths and present select if available.
  */
-export async function runOneDriveFixerCmdUserInterface() {
+export async function runOneDriveFixerCmdUserInterface(): Promise<void> {
   try {
-    while (true) {
-      // TODO: god damn it
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    // TODO: god damn it
+    await new Promise((resolve) => setTimeout(resolve, 600));
 
-      const option = await getUserChoice();
-      if (option === Options.Exit) {
-        return;
-      }
-
+    let option = await getUserChoice();
+    while (option !== Options.Exit) {
       const folderPath = await promptForFolderPath();
 
       const isDryRun = await confirm({ message: 'Dry-run?', default: true });
 
       await executeFixOption(option, folderPath, isDryRun);
+
+      option = await getUserChoice();
     }
   } catch (error) {
     logger.error('Error:', error);
   }
 }
 
-async function executeFixOption(option: Options, folderPath: string, isDryRun: boolean) {
+async function executeFixOption(
+  option: Options,
+  folderPath: string,
+  isDryRun: boolean,
+): Promise<void> {
   if (option === Options.FixFileNames) {
     await runOneDriveNameDateFixer(folderPath, isDryRun);
   } else {
@@ -71,7 +73,7 @@ async function executeFixOption(option: Options, folderPath: string, isDryRun: b
   }
 }
 
-async function getUserChoice() {
+async function getUserChoice(): Promise<Options> {
   return await select({
     message: 'Select an option:',
     choices: [
@@ -115,7 +117,7 @@ async function promptForFolderPath(): Promise<string> {
 async function runOneDriveNameDateFixer(filePath: string, isDryRun: boolean): Promise<void> {
   try {
     logger.info(`Run fix media files names in: "${filePath}"`);
-    const handledFiles = await OneDriveNameDateFixer.fixFileNames(filePath, true);
+    const handledFiles = await OneDriveNameDateFixer.fixFileNames(filePath, isDryRun);
 
     const { updated, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
     logger.info(
