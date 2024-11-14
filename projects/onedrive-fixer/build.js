@@ -12,14 +12,14 @@ const require = createRequire(import.meta.url);
 const buildOptions = {
   bundle: true,
   entryPoints: ['src/main.ts'],
-  outfile: 'dist/bundle/bundle.js',
+  outfile: 'dist/bundle/bundle.mjs',
   platform: 'node',
   target: 'node22',
   format: 'esm',
   minify: false,
   treeShaking: false,
   banner: { js: ESM_REQUIRE_SHIM },
-  external: ['pino'],
+  external: ['pino', 'exiftool-vendored'],
 };
 
 await build(buildOptions);

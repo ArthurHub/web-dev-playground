@@ -6,10 +6,10 @@
     "./*": "./dist/*"
   },
   "dependencies": {
-    "pino": "^9.5.0"
+    "pino": "^9.5.0",
+    "pino-pretty": "^12.0.0"
   },
   "devDependencies": {
-    "@types/pino": "^7.0.5",
-    "pino-pretty": "^12.0.0"
+    "@types/pino": "^7.0.5"
   }
 }
