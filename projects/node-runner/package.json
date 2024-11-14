@@ -2,12 +2,24 @@
   "name": "node-runner",
   "version": "0.1.0",
   "scripts": {
-    "package": "rm -f dist/NodeRunner.exe && npm run pkg && npm run nodew && rm dist/NodeRunner_window.exe",
-    "pkg": "pkg --targets latest-win-x64 runner.js --output dist/NodeRunner_window.exe",
-    "nodew": "create-nodew-exe dist/NodeRunner_window.exe dist/NodeRunner.exe"
+    "package": "rm -f dist/NodeRunner.exe && npm run pkg && npm run nodew && rm dist/node-runner-w.exe",
+    "pkg": "pkg . --output dist/node-runner-w",
+    "nodew": "create-nodew-exe dist/node-runner-w.exe dist/node-runner.exe"
   },
   "devDependencies": {
     "create-nodew-exe": "^2.1.0",
     "pkg": "^5.8.1"
+  },
+  "bin": "runner.js",
+  "pkg": {
+    "assets": [
+      "assets/*"
+    ],
+    "targets": [
+      "latest-win-x64"
+    ]
+  },
+  "dependencies": {
+    "unzipper": "^0.12.3"
   }
 }
