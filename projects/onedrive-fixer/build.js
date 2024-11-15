@@ -1,10 +1,10 @@
 import { build } from 'esbuild';
 
 const ESM_REQUIRE_SHIM = `
-const { dirname } = await import("path");
-const { fileURLToPath } = await import("url");
-globalThis.__filename = fileURLToPath(import.meta.url);
-globalThis.__dirname = dirname(globalThis.__filename);
+const { dirname: shimDirname } = await import("path");
+const { fileURLToPath: shimFileURLToPath } = await import("url");
+globalThis.__filename = shimFileURLToPath(import.meta.url);
+globalThis.__dirname = shimDirname(globalThis.__filename);
 import { createRequire } from 'module'; 
 const require = createRequire(import.meta.url);
 `;
