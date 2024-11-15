@@ -16,7 +16,8 @@ import { getLogger } from 'common/logger.js';
 import type { Dirent } from 'fs';
 import * as fs from 'fs/promises';
 import { join, basename, extname } from 'path';
-import convert from 'heic-convert';
+import sharp from 'sharp';
+import decode from 'heic-decode';
 import trash from 'trash';
 
 const logger = getLogger('heic-to-jpeg-converter');
@@ -68,13 +69,16 @@ export class HEICtoJpegConverter {
       );
 
       logger.info('Convert "%s"', srcPhoto.name);
-      const inputStream = await fs.readFile(srcPhotoPath);
-      const outputStream = await convert({
-        buffer: inputStream,
-        format: 'JPEG',
-        quality: 1,
+      const inStream = await fs.readFile(srcPhotoPath);
+      const heicImageData = await decode({ buffer: inStream });
+      const sharpImage = sharp(heicImageData.data, {
+        raw: {
+          width: heicImageData.width,
+          height: heicImageData.height,
+          channels: 4,
+        },
       });
-      await fs.writeFile(outPhotoPath, Buffer.from(outputStream));
+      await sharpImage.jpeg({ quality: 92 }).toFile(outPhotoPath);
 
       // success
       this.convertedPhotos.push(outPhotoPath);
