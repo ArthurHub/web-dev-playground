@@ -6,8 +6,7 @@
     "@inquirer/prompts": "^7.1.0",
     "common": "0.1.0",
     "exiftool-vendored": "^29.0.0",
-    "heic-decode": "^2.0.0",
-    "sharp": "^0.33.5",
+    "heic-convert": "^2.1.0",
     "trash": "^9.0.0"
   },
   "scripts": {
