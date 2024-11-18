@@ -53,6 +53,7 @@ function getNodeModules(buildDir) {
     name: 'temp',
     dependencies: {
       pino: '^9.5.0',
+      trash: '^6.0.0',
       'pino-pretty': '^12.0.0',
       'exiftool-vendored': '^29.0.0',
     },

@@ -19,7 +19,7 @@ const buildOptions = {
   minify: false,
   treeShaking: false,
   banner: { js: ESM_REQUIRE_SHIM },
-  external: ['pino', 'exiftool-vendored'],
+  external: ['pino', 'exiftool-vendored', 'trash'],
 };
 
 await build(buildOptions);
