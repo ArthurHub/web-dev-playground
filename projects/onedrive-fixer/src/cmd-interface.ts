@@ -15,7 +15,7 @@ import { select, input, confirm } from '@inquirer/prompts';
 import { getLogger } from 'common/logger.js';
 import * as fs from 'fs';
 import { OneDriveNameDateFixer } from './onedrive-name-date-fixer.js';
-import { OneDriveFixedFileStatus, type OneDriveFixedFile } from './entities.js';
+import { OneDriveFileToFixStatus, type OneDriveFileToFix } from './entities.js';
 import path from 'path';
 import { tmpdir } from 'os';
 import { HEICtoJpegConverter } from './heic-to-jpeg-converter.js';
@@ -43,34 +43,20 @@ const onedriveFixerDataFile = path.join(tmpdir(), 'onedrive-fixer-data.json');
  */
 export async function runOneDriveFixerCmdUserInterface(): Promise<void> {
   try {
-    // TODO: god damn it
-    await new Promise((resolve) => setTimeout(resolve, 400));
-
-    let option = await getUserChoice();
+    let option;
     while (option !== Options.Exit) {
-      const folderPath = await promptForFolderPath();
-
-      const isDryRun = await confirm({ message: 'Dry-run?', default: true });
-
-      await executeFixOption(option, folderPath, isDryRun);
-
-      await new Promise((resolve) => setTimeout(resolve, 800));
       option = await getUserChoice();
+      switch (option) {
+        case Options.FixFileNames:
+          await runOneDriveNameDateFixer();
+          break;
+        case Options.ConvertHEICtoJPEG:
+          await runHEICtoJPEGConverter();
+          break;
+      }
     }
   } catch (error) {
     logger.error('Error:', error);
-  }
-}
-
-async function executeFixOption(
-  option: Options,
-  folderPath: string,
-  isDryRun: boolean,
-): Promise<void> {
-  if (option === Options.FixFileNames) {
-    await runOneDriveNameDateFixer(folderPath, isDryRun);
-  } else {
-    await runHEICtoJPEGConverter(folderPath, isDryRun);
   }
 }
 
@@ -115,35 +101,62 @@ async function promptForFolderPath(): Promise<string> {
   return folderPath;
 }
 
-async function runOneDriveNameDateFixer(filePath: string, isDryRun: boolean): Promise<void> {
+async function runOneDriveNameDateFixer(): Promise<void> {
   try {
-    logger.info(`Run fix media files names in: "${filePath}"`);
-    const handledFiles = await OneDriveNameDateFixer.fixFileNames(filePath, isDryRun);
+    const folderPath = await promptForFolderPath();
 
-    const { updated, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
-    logger.info(
+    logger.info(`Run fix media files names in: "${folderPath}"`);
+    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, (folder, files) => {
+      console.log(`Scanned folder: ${folder} - ${files.length} files`);
+    });
+
+    const { updateRequired, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
+    console.log(
       `
--------------
 Finished running OneDrive media file name/date fixer: 
-%d media files processed
-%d updated
-%d no update required
+%d media files found
+%d require fixing
+%d already correct
 %d not iPhone
-%d other
--------------`,
+%d other`,
       handledFiles.length,
-      updated,
+      updateRequired,
       noUpdateRequired,
       skippedNotIPhone,
-      handledFiles.length - updated - noUpdateRequired - skippedNotIPhone,
+      handledFiles.length - updateRequired - noUpdateRequired - skippedNotIPhone,
     );
+
+    if (updateRequired < 1) {
+      console.log('No files to fix');
+      return;
+    }
+
+    const { run, dryRun } = await getRunConfirmationChoice();
+    if (!run) {
+      return;
+    }
+
+    const fixProgCallback = (index: number, total: number, file: OneDriveFileToFix): void => {
+      console.log(`Updated file ${index} of ${total}: ${file.file.name} --> ${file.newName}`);
+    };
+
+    if (dryRun) {
+      await OneDriveNameDateFixer.fix(handledFiles.slice(), dryRun, fixProgCallback);
+
+      const runReal = await confirm({ message: 'Run the fix for real?', default: false });
+      if (!runReal) {
+        return;
+      }
+    }
+
+    await OneDriveNameDateFixer.fix(handledFiles, dryRun, fixProgCallback);
   } catch (error) {
     logger.fatal(error, 'Failed running OneDrive name date fixer');
   }
 }
 
-function getCounts(handledFiles: OneDriveFixedFile[]): {
-  updated: number;
+function getCounts(handledFiles: OneDriveFileToFix[]): {
+  updateRequired: number;
   noUpdateRequired: number;
   skippedNotIPhone: number;
 } {
@@ -151,23 +164,27 @@ function getCounts(handledFiles: OneDriveFixedFile[]): {
   let noUpdateRequired = 0;
   let skippedNotIPhone = 0;
   for (const file of handledFiles) {
-    if (file.status === OneDriveFixedFileStatus.Updated) {
+    if (file.status === OneDriveFileToFixStatus.UpdateRequired) {
       updated++;
-    } else if (file.status === OneDriveFixedFileStatus.NoUpdateRequired) {
+    } else if (file.status === OneDriveFileToFixStatus.NoUpdateRequired) {
       noUpdateRequired++;
-    } else if (file.status === OneDriveFixedFileStatus.SkippedNotIPhone) {
+    } else if (file.status === OneDriveFileToFixStatus.SkippedNotIPhone) {
       skippedNotIPhone++;
     }
   }
-  return { updated, noUpdateRequired, skippedNotIPhone };
+  return { updateRequired: updated, noUpdateRequired, skippedNotIPhone };
 }
 
-async function runHEICtoJPEGConverter(folderPath: string, isDryRun: boolean): Promise<void> {
+async function runHEICtoJPEGConverter(): Promise<void> {
+  const folderPath = await promptForFolderPath();
+
+  const { run, dryRun } = await getRunConfirmationChoice();
+  if (!run) {
+    return;
+  }
+
   logger.info(`Run fix media files names in: "${folderPath}"`);
-  const { convertedPhotos, failedPhotos } = await HEICtoJpegConverter.convertFolder(
-    folderPath,
-    isDryRun,
-  );
+  const { convertedPhotos, failedPhotos } = await HEICtoJpegConverter.convertFolder(folderPath, dryRun);
   logger.info(
     `
 -------------
@@ -195,4 +212,15 @@ function writeData(data: OneDriveFixerData, folderPath: string): void {
   data.lastUsedPaths = [...new Set(data.lastUsedPaths)];
   data.lastUsedPaths = data.lastUsedPaths.slice(0, 3);
   fs.writeFileSync(onedriveFixerDataFile, JSON.stringify(data, null, 2));
+}
+
+async function getRunConfirmationChoice(): Promise<{ run: boolean; dryRun: boolean }> {
+  return await select({
+    message: 'Run?:',
+    choices: [
+      { name: 'Yes', value: { run: true, dryRun: false } },
+      { name: 'Dry-Run', value: { run: true, dryRun: true } },
+      { name: 'Cancel', value: { run: false, dryRun: false } },
+    ],
+  });
 }

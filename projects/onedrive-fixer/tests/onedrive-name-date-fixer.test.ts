@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { promises as fs } from 'fs';
 import { exiftool } from 'exiftool-vendored';
 import { OneDriveNameDateFixer } from '../src/onedrive-name-date-fixer.js';
-import { OneDriveFixedFileStatus } from '../src/entities.js';
+import { OneDriveFileToFixStatus } from '../src/entities.js';
 
 vi.mock('fs', () => ({
   promises: {
@@ -14,7 +14,7 @@ vi.mock('fs', () => ({
 vi.mock('exiftool-vendored', () => ({
   exiftool: {
     read: vi.fn(),
-    end: vi.fn(),
+    closeChildProcesses: vi.fn(),
   },
 }));
 
@@ -36,40 +36,44 @@ describe('OneDriveNameDateFixer', () => {
     (fs.readdir as any).mockResolvedValue([file]);
     (exiftool.read as any).mockResolvedValue(metadata);
 
-    const handledFiles = await OneDriveNameDateFixer.updateFileNames(folderPath, false);
+    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, () => {});
+    await OneDriveNameDateFixer.fix(handledFiles, false, () => {});
 
     expect(handledFiles).toHaveLength(1);
-    expect(handledFiles[0]?.status).toBe(OneDriveFixedFileStatus.NoUpdateRequired);
+    expect(handledFiles[0]?.status).toBe(OneDriveFileToFixStatus.NoUpdateRequired);
   });
 
   it('should skip non-iPhone files', async () => {
     (fs.readdir as any).mockResolvedValue([file]);
     (exiftool.read as any).mockResolvedValue({ ...metadata, Make: 'samsung' });
 
-    const handledFiles = await OneDriveNameDateFixer.updateFileNames(folderPath, false);
+    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, () => {});
+    await OneDriveNameDateFixer.fix(handledFiles, false, () => {});
 
     expect(handledFiles).toHaveLength(1);
-    expect(handledFiles[0]?.status).toBe(OneDriveFixedFileStatus.SkippedNotIPhone);
+    expect(handledFiles[0]?.status).toBe(OneDriveFileToFixStatus.SkippedNotIPhone);
   });
 
   it('should skip files with unknown creation date', async () => {
     (fs.readdir as any).mockResolvedValue([file]);
     (exiftool.read as any).mockResolvedValue({ ...metadata, CreateDate: undefined });
 
-    const handledFiles = await OneDriveNameDateFixer.updateFileNames(folderPath, false);
+    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, () => {});
+    await OneDriveNameDateFixer.fix(handledFiles, false, () => {});
 
     expect(handledFiles).toHaveLength(1);
-    expect(handledFiles[0]?.status).toBe(OneDriveFixedFileStatus.SkippedDateUnknown);
+    expect(handledFiles[0]?.status).toBe(OneDriveFileToFixStatus.SkippedDateUnknown);
   });
 
   it('should rename files if dates do not match', async () => {
     (fs.readdir as any).mockResolvedValue([file]);
     (exiftool.read as any).mockResolvedValue({ ...metadata, CreateDate: '2022-01-01T13:00:00' });
 
-    const handledFiles = await OneDriveNameDateFixer.updateFileNames(folderPath, false);
+    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, () => {});
+    await OneDriveNameDateFixer.fix(handledFiles, false, () => {});
 
     expect(handledFiles).toHaveLength(1);
-    expect(handledFiles[0]?.status).toBe(OneDriveFixedFileStatus.Updated);
+    expect(handledFiles[0]?.status).toBe(OneDriveFileToFixStatus.UpdateComplete);
     expect(fs.rename).toHaveBeenCalled();
   });
 
@@ -77,10 +81,11 @@ describe('OneDriveNameDateFixer', () => {
     (fs.readdir as any).mockResolvedValue([file]);
     (exiftool.read as any).mockResolvedValue({ ...metadata, CreateDate: '2022-01-01T13:00:00' });
 
-    const handledFiles = await OneDriveNameDateFixer.updateFileNames(folderPath, true);
+    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, () => {});
+    await OneDriveNameDateFixer.fix(handledFiles, true, () => {});
 
     expect(handledFiles).toHaveLength(1);
-    expect(handledFiles[0]?.status).toBe(OneDriveFixedFileStatus.Updated);
+    expect(handledFiles[0]?.status).toBe(OneDriveFileToFixStatus.UpdateComplete);
     expect(fs.rename).not.toHaveBeenCalled();
   });
 });

@@ -15,8 +15,8 @@ import { Dirent, promises as fs } from 'fs';
 import { extname, join, resolve } from 'path';
 import { exiftool } from 'exiftool-vendored';
 import { getLogger } from 'common/logger.js';
-import { OneDriveFixedFileStatus, type OneDriveFixedFile } from './entities.js';
-import { compareIgnoreCase, getDateIgnoreTimezone } from 'common/common.js';
+import { OneDriveFileToFixStatus, type OneDriveFileToFix } from './entities.js';
+import { compareIgnoreCase, getDateIgnoreTimezone, handleErrorUnknown } from 'common/common.js';
 
 const logger = getLogger('name-date-fixer');
 
@@ -47,50 +47,76 @@ const IPHONE_MAKE = 'apple';
  * The easiest is to remove the timezone info from exif metadata date before loading it into a Date object.
  * Then we can compare the two dates in current local timezone with same result as if we compared them original timezone.
  */
-export class OneDriveNameDateFixer {
-  private readonly dryRun: boolean;
-  private readonly handledFiles: OneDriveFixedFile[] = [];
 
-  constructor(dryRun: boolean) {
-    this.dryRun = dryRun;
-  }
-
-  public static async fixFileNames(
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace OneDriveNameDateFixer {
+  export async function scan(
     folderPath: string,
-    dryRun: boolean,
-  ): Promise<OneDriveFixedFile[]> {
-    const fixer = new OneDriveNameDateFixer(dryRun);
-    await fixer.fixFileNames(folderPath);
-    return fixer.handledFiles;
-  }
-
-  async fixFileNames(folderPath: string): Promise<void> {
+    progressCallback: (folder: string, files: OneDriveFileToFix[]) => void,
+  ): Promise<OneDriveFileToFix[]> {
     try {
-      logger.info('Starting file name update process in "%s"', resolve(folderPath));
-      await this.iterateFiles(folderPath);
+      logger.info('Scan for media files to fix in "%s"', resolve(folderPath));
+      const mediaFiles = await iterateFolderDeep(folderPath, progressCallback);
+      logger.info('Scan complete, found "%d" media files', mediaFiles.length);
+      return mediaFiles;
     } catch (error) {
-      logger.fatal(error, 'Error updating file names:');
+      const err = handleErrorUnknown(error);
+      throw new Error(`Error scanning folder "${folderPath}": ${err.message}`, { cause: err });
     } finally {
-      logger.info('Closing exiftool process');
-      await exiftool.end();
-    }
-  }
-
-  async iterateFiles(folderPath: string): Promise<void> {
-    const files = await fs.readdir(folderPath, { withFileTypes: true });
-
-    for (const file of files) {
-      const filePath = join(folderPath, file.name);
-      if (file.isDirectory()) {
-        logger.info('Processing folder "%s"', file.name);
-        await this.iterateFiles(filePath);
-      } else if (supportedExtensions.includes(extname(file.name).toLowerCase())) {
-        await this.processFile(file);
+      try {
+        logger.info('Closing exiftool process');
+        await exiftool.closeChildProcesses();
+      } catch (error) {
+        // swallow the error
+        logger.error(error, 'Error closing exiftool process');
       }
     }
   }
 
-  async processFile(file: Dirent): Promise<void> {
+  export async function fix(
+    files: OneDriveFileToFix[],
+    dryRun: boolean,
+    progressCallback: (index: number, total: number, file: OneDriveFileToFix) => void,
+  ): Promise<void> {
+    try {
+      files = files.filter((file) => file.status === OneDriveFileToFixStatus.UpdateRequired && file.newName);
+      logger.info('Fix media file names for %d files', files.length);
+      let index = 0;
+      for (const file of files) {
+        try {
+          await renameFile(file, dryRun);
+        } catch (error) {
+          logger.error(error, 'Error updating file name "%s"', file.file.name);
+        }
+        progressCallback(++index, files.length, file);
+      }
+    } catch (error) {
+      logger.fatal(error, 'Error updating file names');
+    }
+  }
+
+  async function iterateFolderDeep(
+    folderPath: string,
+    progressCallback: (folder: string, files: OneDriveFileToFix[]) => void,
+  ): Promise<OneDriveFileToFix[]> {
+    let mediaFiles: OneDriveFileToFix[] = [];
+
+    const dirFiles = await fs.readdir(folderPath, { withFileTypes: true });
+    for (const file of dirFiles) {
+      const filePath = join(folderPath, file.name);
+      if (file.isDirectory()) {
+        logger.info('Processing folder "%s"', file.name);
+        mediaFiles = mediaFiles.concat(await iterateFolderDeep(filePath, progressCallback));
+      } else if (supportedExtensions.includes(extname(file.name).toLowerCase())) {
+        mediaFiles.push(await processFile(file));
+      }
+    }
+
+    progressCallback(folderPath, mediaFiles);
+    return mediaFiles;
+  }
+
+  async function processFile(file: Dirent): Promise<OneDriveFileToFix> {
     logger.debug('Processing file "%s"', file.name);
     const filePath = join(file.parentPath, file.name);
     try {
@@ -98,56 +124,35 @@ export class OneDriveNameDateFixer {
       const isIphone = compareIgnoreCase(IPHONE_MAKE, metadata.Make);
 
       if (!isIphone) {
-        this.handledFiles.push({ file, status: OneDriveFixedFileStatus.SkippedNotIPhone });
-        logger.debug(`Skipping non-iPhone file "${file.name}"`);
-        return;
+        return { file: file, status: OneDriveFileToFixStatus.SkippedNotIPhone };
       }
 
       if (!metadata.CreateDate) {
-        this.handledFiles.push({ file, status: OneDriveFixedFileStatus.SkippedDateUnknown });
-        logger.warn('Skipping "%s", file has no creation date in metadata', file.name);
-        return;
+        return { file: file, status: OneDriveFileToFixStatus.SkippedDateUnknown };
+      }
+
+      const fileNameCreationDate = parseDateFromFileName(filePath);
+      if (!fileNameCreationDate) {
+        return { file, status: OneDriveFileToFixStatus.SkippedDateUnknown };
       }
 
       const fileCreationDate = getDateIgnoreTimezone(metadata.CreateDate.toString());
-      const fileNameCreationDate = this.parseDateFromFileName(filePath);
-
-      if (!fileNameCreationDate) {
-        this.handledFiles.push({ file, status: OneDriveFixedFileStatus.SkippedDateUnknown });
-        logger.warn('Skipping "%s", failed to parse creation date from file name', file.name);
-        return;
-      }
-
       if (fileNameCreationDate.getTime() === fileCreationDate.getTime()) {
-        this.handledFiles.push({ file, status: OneDriveFixedFileStatus.NoUpdateRequired });
-        logger.debug(`Skipping "%s", No change required`, file.name);
-        return;
+        return { file, status: OneDriveFileToFixStatus.NoUpdateRequired };
       }
 
-      const newFileName = this.getNewFilename(file, fileCreationDate);
-
-      if (this.dryRun) {
-        logger.warn('Update required, dry-run mode: "%s" --> "%s"', file.name, newFileName);
-      } else {
-        logger.trace([file.name, newFileName], 'Updating file name');
-        await fs.rename(
-          filePath,
-          join(file.parentPath, this.getNewFilename(file, fileCreationDate)),
-        );
-        logger.info('File name updated: "%s" --> "%s"', file.name, newFileName);
-      }
-      this.handledFiles.push({
-        file,
-        status: OneDriveFixedFileStatus.Updated,
-        updateName: newFileName,
-      });
+      return {
+        file: file,
+        status: OneDriveFileToFixStatus.UpdateRequired,
+        newName: getNewFilename(file, fileCreationDate),
+      };
     } catch (error) {
-      this.handledFiles.push({ file, status: OneDriveFixedFileStatus.Error, error });
       console.error([error, filePath], 'Error processing file %s', file.name);
+      return { file: file, status: OneDriveFileToFixStatus.Error, error };
     }
   }
 
-  parseDateFromFileName(filePath: string): Date | null {
+  function parseDateFromFileName(filePath: string): Date | null {
     const regex = /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/;
     const match = regex.exec(filePath);
     if (match) {
@@ -157,7 +162,7 @@ export class OneDriveNameDateFixer {
     return null;
   }
 
-  getNewFilename(file: Dirent, date: Date): string {
+  function getNewFilename(file: Dirent, date: Date): string {
     const yyyy = date.getFullYear();
     const MM = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
@@ -167,5 +172,30 @@ export class OneDriveNameDateFixer {
     const formattedDate = `${yyyy}${MM}${dd}_${hh}${mm}${ss}`;
     const filenameSuffix = file.name.substring(formattedDate.length);
     return `${formattedDate}${filenameSuffix}`;
+  }
+
+  async function renameFile(file: OneDriveFileToFix, dryRun: boolean): Promise<void> {
+    try {
+      if (file.status !== OneDriveFileToFixStatus.UpdateRequired) {
+        throw new Error(`Media file object "${file.file.name}" invalid status for update: "${file.status}"`);
+      }
+      if (file.newName === undefined) {
+        throw new Error(`Invalid media file object "${file.file.name}" for update, new name is undefined`);
+      }
+
+      if (dryRun) {
+        logger.warn('Renaming in dry-run mode: "%s" --> "%s"', file.file.name, file.newName);
+        file.status = OneDriveFileToFixStatus.UpdateComplete;
+        return;
+      }
+
+      logger.trace([file.file.name, file.newName], 'Updating file name');
+      await fs.rename(join(file.file.parentPath, file.file.name), join(file.file.parentPath, file.newName));
+      file.status = OneDriveFileToFixStatus.UpdateComplete;
+      logger.info('File renamed: "%s" --> "%s"', file.file.name, file.newName);
+    } catch (error) {
+      logger.error(error, 'Error renaming file "%s"', file.file.name);
+      file.error = error;
+    }
   }
 }

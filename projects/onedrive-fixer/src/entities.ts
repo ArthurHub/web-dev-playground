@@ -1,14 +1,15 @@
 import type { Dirent } from 'fs';
 
-export interface OneDriveFixedFile {
+export interface OneDriveFileToFix {
   file: Dirent;
-  status: OneDriveFixedFileStatus;
-  updateName?: string;
+  status: OneDriveFileToFixStatus;
+  newName?: string;
   error?: unknown;
 }
 
-export enum OneDriveFixedFileStatus {
-  Updated = 'UPDATED',
+export enum OneDriveFileToFixStatus {
+  UpdateRequired = 'UPDATE_REQUIRED',
+  UpdateComplete = 'UPDATE_COMPLETE',
   NoUpdateRequired = 'NO_UPDATE_REQUIRED',
   SkippedNotIPhone = 'SKIPPED_NOT_IPHONE',
   SkippedDateUnknown = 'SKIPPED_DATE_UNKNOWN',
