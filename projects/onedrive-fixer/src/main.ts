@@ -16,6 +16,7 @@ import { runOneDriveFixerCmdUserInterface } from './cmd-interface.js';
 
 async function main(): Promise<void> {
   try {
+    logger.info('Starting OneDrive Fixer');
     await runOneDriveFixerCmdUserInterface();
   } catch (error) {
     logger.fatal(error, 'Exception in main');
