@@ -12,101 +12,10 @@
 // ArthurHub, 2024
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-parameters */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { getLoggingConfig, setLoggingConfigInitialized } from './internal/logging-config-internal.js';
+import { getLoggingConfig, setLoggingConfigInitialized, type LogFn, type Logger } from './internal/logging-internal.js';
 import { LogLevel } from './logging-config.js';
-import pino from 'pino';
-
-interface LogFn {
-  <T extends object>(obj: T, msg?: string, ...args: any[]): void;
-  (obj: unknown, msg?: string, ...args: any[]): void;
-  (msg: string, ...args: any[]): void;
-}
-
-interface Logger {
-  /**
-   * Set this property to the desired logging level. In order of priority, available levels are:
-   *
-   * - 'fatal'
-   * - 'error'
-   * - 'warn'
-   * - 'info'
-   * - 'debug'
-   * - 'trace'
-   *
-   * The logging level is a __minimum__ level. For instance if `logger.level` is `'info'` then all `'fatal'`, `'error'`, `'warn'`,
-   * and `'info'` logs will be enabled.
-   *
-   * You can pass `'silent'` to disable logging.
-   */
-  readonly level: LogLevel;
-
-  /** Child logger with specific name and potentially custom properties */
-  child(name: string): Logger;
-
-  /**
-   * Log at `'fatal'` level the given msg. If the first argument is an object, all its properties will be included in the JSON line.
-   * If more args follows `msg`, these will be used to format `msg` using `util.format`.
-   *
-   * @typeParam T: the interface of the object being serialized. Default is object.
-   * @param obj: object to be serialized
-   * @param msg: the log message to write
-   * @param ...args: format string values when `msg` is a format string
-   */
-  fatal: LogFn;
-  /**
-   * Log at `'error'` level the given msg. If the first argument is an object, all its properties will be included in the JSON line.
-   * If more args follows `msg`, these will be used to format `msg` using `util.format`.
-   *
-   * @typeParam T: the interface of the object being serialized. Default is object.
-   * @param obj: object to be serialized
-   * @param msg: the log message to write
-   * @param ...args: format string values when `msg` is a format string
-   */
-  error: LogFn;
-  /**
-   * Log at `'warn'` level the given msg. If the first argument is an object, all its properties will be included in the JSON line.
-   * If more args follows `msg`, these will be used to format `msg` using `util.format`.
-   *
-   * @typeParam T: the interface of the object being serialized. Default is object.
-   * @param obj: object to be serialized
-   * @param msg: the log message to write
-   * @param ...args: format string values when `msg` is a format string
-   */
-  warn: LogFn;
-  /**
-   * Log at `'info'` level the given msg. If the first argument is an object, all its properties will be included in the JSON line.
-   * If more args follows `msg`, these will be used to format `msg` using `util.format`.
-   *
-   * @typeParam T: the interface of the object being serialized. Default is object.
-   * @param obj: object to be serialized
-   * @param msg: the log message to write
-   * @param ...args: format string values when `msg` is a format string
-   */
-  info: LogFn;
-  /**
-   * Log at `'debug'` level the given msg. If the first argument is an object, all its properties will be included in the JSON line.
-   * If more args follows `msg`, these will be used to format `msg` using `util.format`.
-   *
-   * @typeParam T: the interface of the object being serialized. Default is object.
-   * @param obj: object to be serialized
-   * @param msg: the log message to write
-   * @param ...args: format string values when `msg` is a format string
-   */
-  debug: LogFn;
-  /**
-   * Log at `'trace'` level the given msg. If the first argument is an object, all its properties will be included in the JSON line.
-   * If more args follows `msg`, these will be used to format `msg` using `util.format`.
-   *
-   * @typeParam T: the interface of the object being serialized. Default is object.
-   * @param obj: object to be serialized
-   * @param msg: the log message to write
-   * @param ...args: format string values when `msg` is a format string
-   */
-  trace: LogFn;
-}
 
 const LogLevelPriority: Record<LogLevel, number> = {
   [LogLevel.trace]: 10,
@@ -118,6 +27,9 @@ const LogLevelPriority: Record<LogLevel, number> = {
   [LogLevel.off]: 0,
 };
 
+/**
+ * Basic console logger implementation.
+ */
 class ConsoleLogger implements Logger {
   readonly level: LogLevel;
 
@@ -126,7 +38,7 @@ class ConsoleLogger implements Logger {
   }
 
   child(): Logger {
-    return this;
+    return this; // no-op
   }
 
   public trace: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
@@ -155,47 +67,6 @@ class ConsoleLogger implements Logger {
 }
 
 /**
- * Logger class to proxy logs into pino logger
- */
-class PinoProxyLogger implements Logger {
-  readonly level: LogLevel;
-  private pinoLogger: pino.Logger;
-
-  constructor(logger: pino.Logger) {
-    this.pinoLogger = logger;
-    this.level = LogLevel[logger.level as keyof typeof LogLevel];
-  }
-
-  public child(name: string): Logger {
-    return new PinoProxyLogger(this.pinoLogger.child({ name: name }, {}));
-  }
-
-  public info: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    this.pinoLogger.info(arg1 as any, arg2, ...args);
-  };
-
-  public error: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    this.pinoLogger.error(arg1 as any, arg2, ...args);
-  };
-
-  public debug: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    this.pinoLogger.debug(arg1 as any, arg2, ...args);
-  };
-
-  public warn: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    this.pinoLogger.warn(arg1 as any, arg2, ...args);
-  };
-
-  public trace: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    this.pinoLogger.trace(arg1 as any, arg2, ...args);
-  };
-
-  public fatal: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    this.pinoLogger.fatal(arg1 as any, arg2, ...args);
-  };
-}
-
-/**
  * Initialize logging with optional override configuration.
  * Must be called before any log usage.
  * Order of logging config:
@@ -209,7 +80,9 @@ async function initLogging(): Promise<Logger> {
   const logConfig = await getLoggingConfig();
   let logger: Logger;
   if (logConfig.pino) {
-    logger = new PinoProxyLogger(pino.default(logConfig.pino as pino.LoggerOptions));
+    // dynamic import to avoid importing pino when not used (bundle relevant)
+    const pinoLogger = await import('./internal/pino-logger.js');
+    logger = pinoLogger.createPinoProxyLogger(logConfig);
   } else {
     // if console is not specified create a no-op logger
     logger = new ConsoleLogger(logConfig.console?.level ?? LogLevel.off);

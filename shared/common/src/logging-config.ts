@@ -11,7 +11,7 @@
 //
 // ArthurHub, 2024
 
-import { setOverrideDefaultLoggingConfig } from './internal/logging-config-internal.js';
+import { setOverrideDefaultLoggingConfig } from './internal/logging-internal.js';
 
 export enum LogLevel {
   off = 'off',
