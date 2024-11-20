@@ -118,11 +118,7 @@ let loggingInitialized: boolean;
 let defaultOverrideConfig: LoggingConfig | undefined;
 
 /**
- * Set the default logging configuration to use if file config not found.
- * Order:
- * 1. Use "logging-config.js" if found in working directory.
- * 2. Use override default config if set.
- * 3. Load default config in "./logging-config.js" file.
+ * Set the default logging configuration to use if "logging-config.js" file config not found.
  */
 export function setOverrideDefaultLoggingConfig(config: LoggingConfig): void {
   if (loggingInitialized) {
@@ -136,7 +132,8 @@ export function setOverrideDefaultLoggingConfig(config: LoggingConfig): void {
  */
 export async function getLoggingConfig(): Promise<LoggingConfig> {
   // dynamic load of config file in working directory
-  const cwdConfigFilePath = pathToFileURL(join(process.cwd(), 'logging-config.js'));
+  const loggingConfigFilePath = process.env['LOG_CONFIG_FILE'] ?? 'logging-config.js';
+  const cwdConfigFilePath = pathToFileURL(join(process.cwd(), loggingConfigFilePath));
   if (existsSync(cwdConfigFilePath)) {
     return (await import(cwdConfigFilePath.href)) as LoggingConfig;
   }
@@ -144,10 +141,11 @@ export async function getLoggingConfig(): Promise<LoggingConfig> {
   if (defaultOverrideConfig) {
     return defaultOverrideConfig;
   }
-  // use default config file
+  // use common default config file
   return (await import('./default-logging-config.js')) as LoggingConfig;
 }
 
+/** Mark to prevent logging config override after initialization is complete */
 export function setLoggingConfigInitialized(): void {
   loggingInitialized = true;
 }

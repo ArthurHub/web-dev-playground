@@ -13,6 +13,9 @@
 
 import { setOverrideDefaultLoggingConfig } from './internal/logging-internal.js';
 
+/**
+ * The available log level in order of priority from least to most.
+ */
 export enum LogLevel {
   off = 'off',
   trace = 'trace',
@@ -23,6 +26,9 @@ export enum LogLevel {
   fatal = 'fatal',
 }
 
+/**
+ * Configuration structure for logging.
+ */
 export interface LoggingConfig {
   console?: {
     level: LogLevel;
@@ -34,9 +40,10 @@ export interface LoggingConfig {
  * Set the default logging configuration to use if "logging-config.js" file config not found in current
  * working directory or by LOG_CONFIG_FILE environment variable.
  * Order:
- * 1. Use "logging-config.js" if found in working directory.
- * 2. Use override default config if set.
- * 3. Load default config in "./logging-config.js" file.
+ * 1. Use LOG_CONFIG_FILE environment variable if set otherwise use "logging-config.js" for logging config file.
+ * 1. If logging config file found by the path, use it.
+ * 2. If override default config if set via code, use it.
+ * 3. Load default config in "./internal/default-logging-config.js" file.
  */
 export function overrideDefaultLoggingConfig(config: LoggingConfig): void {
   setOverrideDefaultLoggingConfig(config);
