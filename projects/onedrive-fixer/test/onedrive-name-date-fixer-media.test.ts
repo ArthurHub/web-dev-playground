@@ -9,7 +9,6 @@ const REAL_MEDIA_FOLDER = resolve(dirname(fileURLToPath(import.meta.url)), 'medi
 
 describe('OneDriveNameDateFixer', () => {
   it('should have specific result matching media folder', async () => {
-    const dryRun = true;
     const handledFiles = await OneDriveNameDateFixer.scan(REAL_MEDIA_FOLDER, () => {});
     await OneDriveNameDateFixer.fix(handledFiles, true, () => {});
 
@@ -27,11 +26,11 @@ describe('OneDriveNameDateFixer', () => {
     }
 
     expect(noUpdateRequired.length).toEqual(1);
-    expect(noUpdateRequired[0].file.name).toEqual('20231202_104509_739_iOS.heic');
-    expect(noUpdateRequired[0].newName).toBeUndefined();
+    expect(noUpdateRequired[0]?.file.name).toEqual('20231202_104509_739_iOS.heic');
+    expect(noUpdateRequired[0]?.newName).toBeUndefined();
 
     expect(skippedNotIPhone.length).toEqual(1);
-    expect(skippedNotIPhone[0].file.name).toEqual('20231210_095729.jPG');
-    expect(skippedNotIPhone[0].newName).toBeUndefined();
+    expect(skippedNotIPhone[0]?.file.name).toEqual('20231210_095729.jPG');
+    expect(skippedNotIPhone[0]?.newName).toBeUndefined();
   });
 });
