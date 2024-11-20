@@ -1,4 +1,17 @@
-import { describe, it, expect } from 'vitest';
+// Therefore those skilled at the unorthodox
+// are infinite as heaven and earth,
+// inexhaustible as the great rivers.
+// When they come to an end,
+// they begin again,
+// like the days and months;
+// they die and are reborn,
+// like the four seasons.
+//
+// - Sun Tsu, The Art of War.
+//
+// ArthurHub, 2024
+
+import { describe, it, expect, vi } from 'vitest';
 import { OneDriveNameDateFixer } from '../src/onedrive-name-date-fixer.js';
 import { resolve } from 'path';
 import { OneDriveFileToFixStatus } from '../src/entities.js';
@@ -9,8 +22,8 @@ const REAL_MEDIA_FOLDER = resolve(dirname(fileURLToPath(import.meta.url)), 'medi
 
 describe('OneDriveNameDateFixer', () => {
   it('should have specific result matching media folder', async () => {
-    const handledFiles = await OneDriveNameDateFixer.scan(REAL_MEDIA_FOLDER, () => {});
-    await OneDriveNameDateFixer.fix(handledFiles, true, () => {});
+    const handledFiles = await OneDriveNameDateFixer.scan(REAL_MEDIA_FOLDER, vi.fn());
+    await OneDriveNameDateFixer.fix(handledFiles, true, vi.fn());
 
     expect(handledFiles.length).toEqual(5);
 
