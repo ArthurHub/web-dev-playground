@@ -18,8 +18,15 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
   if (typeof require !== "undefined") return require.apply(this, arguments);
   throw Error('Dynamic require of "' + x + '" is not supported');
 });
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __commonJS = (cb, mod) => function __require2() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -37,6 +44,432 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+
+// ../../shared/common/dist/internal/default-logging-config.js
+var default_logging_config_exports = {};
+__export(default_logging_config_exports, {
+  default: () => default_logging_config_default
+});
+import * as path from "path";
+import * as fs from "fs";
+var logDir, logLevel, default_logging_config_default;
+var init_default_logging_config = __esm({
+  "../../shared/common/dist/internal/default-logging-config.js"() {
+    "use strict";
+    logDir = path.join(process.cwd(), "dist\\logs");
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+    logLevel = process.env.LOG_LEVEL ?? "info";
+    default_logging_config_default = {
+      pino: {
+        level: logLevel,
+        transport: {
+          targets: [
+            {
+              target: "pino-pretty",
+              // log nice string to console
+              level: logLevel,
+              options: {
+                sync: true,
+                colorize: true,
+                messageFormat: "[{name}] {msg}",
+                destination: 1,
+                ignore: "hostname,name"
+              }
+            },
+            {
+              target: "pino/file",
+              // log json to file
+              level: logLevel,
+              options: { destination: path.join(logDir, "logs.log") }
+            },
+            {
+              target: "pino/file",
+              // log errors to file
+              level: "error",
+              options: { destination: path.join(logDir, "errors.log") }
+            }
+          ]
+        }
+      }
+    };
+  }
+});
+
+// ../../shared/common/dist/internal/logging-internal.js
+import { existsSync as existsSync2 } from "fs";
+import { pathToFileURL } from "url";
+import { join as join2 } from "path";
+function setOverrideDefaultLoggingConfig(config) {
+  if (loggingInitialized) {
+    throw new Error("Logging already initialized. Make sure to use dynamic imports.");
+  }
+  defaultOverrideConfig = config;
+}
+async function getLoggingConfig() {
+  const loggingConfigFilePath = process.env["LOG_CONFIG_FILE"] ?? "logging-config.js";
+  const cwdConfigFilePath = pathToFileURL(join2(process.cwd(), loggingConfigFilePath));
+  if (existsSync2(cwdConfigFilePath)) {
+    return await import(cwdConfigFilePath.href);
+  }
+  if (defaultOverrideConfig) {
+    return defaultOverrideConfig;
+  }
+  return await Promise.resolve().then(() => (init_default_logging_config(), default_logging_config_exports));
+}
+function setLoggingConfigInitialized() {
+  loggingInitialized = true;
+}
+var loggingInitialized, defaultOverrideConfig;
+var init_logging_internal = __esm({
+  "../../shared/common/dist/internal/logging-internal.js"() {
+    "use strict";
+  }
+});
+
+// ../../shared/common/dist/logging-config.js
+function overrideDefaultLoggingConfig(config) {
+  setOverrideDefaultLoggingConfig(config);
+}
+var LogLevel;
+var init_logging_config = __esm({
+  "../../shared/common/dist/logging-config.js"() {
+    "use strict";
+    init_logging_internal();
+    (function(LogLevel2) {
+      LogLevel2["off"] = "off";
+      LogLevel2["trace"] = "trace";
+      LogLevel2["debug"] = "debug";
+      LogLevel2["info"] = "info";
+      LogLevel2["warn"] = "warn";
+      LogLevel2["error"] = "error";
+      LogLevel2["fatal"] = "fatal";
+    })(LogLevel || (LogLevel = {}));
+  }
+});
+
+// ../../shared/common/dist/internal/pino-logger.js
+var pino_logger_exports = {};
+__export(pino_logger_exports, {
+  createPinoProxyLogger: () => createPinoProxyLogger
+});
+import pino from "pino";
+function createPinoProxyLogger(logConfig) {
+  return new PinoProxyLogger(pino.default(logConfig.pino));
+}
+var PinoProxyLogger;
+var init_pino_logger = __esm({
+  "../../shared/common/dist/internal/pino-logger.js"() {
+    "use strict";
+    init_logging_config();
+    PinoProxyLogger = class _PinoProxyLogger {
+      level;
+      pinoLogger;
+      constructor(logger5) {
+        this.pinoLogger = logger5;
+        this.level = LogLevel[logger5.level];
+      }
+      child(name) {
+        return new _PinoProxyLogger(this.pinoLogger.child({ name }, {}));
+      }
+      info = (arg1, arg2, ...args) => {
+        this.pinoLogger.info(arg1, arg2, ...args);
+      };
+      error = (arg1, arg2, ...args) => {
+        this.pinoLogger.error(arg1, arg2, ...args);
+      };
+      debug = (arg1, arg2, ...args) => {
+        this.pinoLogger.debug(arg1, arg2, ...args);
+      };
+      warn = (arg1, arg2, ...args) => {
+        this.pinoLogger.warn(arg1, arg2, ...args);
+      };
+      trace = (arg1, arg2, ...args) => {
+        this.pinoLogger.trace(arg1, arg2, ...args);
+      };
+      fatal = (arg1, arg2, ...args) => {
+        this.pinoLogger.fatal(arg1, arg2, ...args);
+      };
+    };
+  }
+});
+
+// ../../shared/common/dist/logger.js
+var logger_exports = {};
+__export(logger_exports, {
+  getLogger: () => getLogger,
+  logger: () => logger
+});
+async function initLogging() {
+  const logConfig = await getLoggingConfig();
+  let logger5;
+  if (logConfig.pino) {
+    const pinoLogger = await Promise.resolve().then(() => (init_pino_logger(), pino_logger_exports));
+    logger5 = pinoLogger.createPinoProxyLogger(logConfig);
+  } else {
+    logger5 = new ConsoleLogger(logConfig.console?.level ?? LogLevel.off);
+  }
+  setLoggingConfigInitialized();
+  return logger5;
+}
+function getLogger(name) {
+  return logger.child(name);
+}
+var LogLevelPriority, ConsoleLogger, logger;
+var init_logger = __esm({
+  async "../../shared/common/dist/logger.js"() {
+    "use strict";
+    init_logging_internal();
+    init_logging_config();
+    LogLevelPriority = {
+      [LogLevel.trace]: 10,
+      [LogLevel.debug]: 20,
+      [LogLevel.info]: 30,
+      [LogLevel.warn]: 40,
+      [LogLevel.error]: 50,
+      [LogLevel.fatal]: 60,
+      [LogLevel.off]: 0
+    };
+    ConsoleLogger = class {
+      level;
+      constructor(logLevel2) {
+        this.level = logLevel2;
+      }
+      child() {
+        return this;
+      }
+      trace = (arg1, arg2, ...args) => {
+        if (LogLevelPriority[this.level] >= LogLevelPriority.trace)
+          console.trace(arg1, arg2, ...args);
+      };
+      debug = (arg1, arg2, ...args) => {
+        if (LogLevelPriority[this.level] >= LogLevelPriority.debug)
+          console.debug(arg1, arg2, ...args);
+      };
+      info = (arg1, arg2, ...args) => {
+        if (LogLevelPriority[this.level] >= LogLevelPriority.info)
+          console.log(arg1, arg2, ...args);
+      };
+      warn = (arg1, arg2, ...args) => {
+        if (LogLevelPriority[this.level] >= LogLevelPriority.warn)
+          console.warn(arg1, arg2, ...args);
+      };
+      error = (arg1, arg2, ...args) => {
+        if (LogLevelPriority[this.level] >= LogLevelPriority.error)
+          console.error(arg1, arg2, ...args);
+      };
+      fatal = (arg1, arg2, ...args) => {
+        if (LogLevelPriority[this.level] >= LogLevelPriority.fatal)
+          console.error(arg1, arg2, ...args);
+      };
+    };
+    logger = await initLogging();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/key.js
+var isUpKey, isDownKey, isSpaceKey, isBackspaceKey, isNumberKey, isEnterKey;
+var init_key = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/key.js"() {
+    isUpKey = (key) => (
+      // The up key
+      key.name === "up" || // Vim keybinding
+      key.name === "k" || // Emacs keybinding
+      key.ctrl && key.name === "p"
+    );
+    isDownKey = (key) => (
+      // The down key
+      key.name === "down" || // Vim keybinding
+      key.name === "j" || // Emacs keybinding
+      key.ctrl && key.name === "n"
+    );
+    isSpaceKey = (key) => key.name === "space";
+    isBackspaceKey = (key) => key.name === "backspace";
+    isNumberKey = (key) => "123456789".includes(key.name);
+    isEnterKey = (key) => key.name === "enter" || key.name === "return";
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/errors.js
+var AbortPromptError, CancelPromptError, ExitPromptError, HookError, ValidationError;
+var init_errors = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/errors.js"() {
+    AbortPromptError = class extends Error {
+      name = "AbortPromptError";
+      message = "Prompt was aborted";
+      constructor(options) {
+        super();
+        this.cause = options?.cause;
+      }
+    };
+    CancelPromptError = class extends Error {
+      name = "CancelPromptError";
+      message = "Prompt was canceled";
+    };
+    ExitPromptError = class extends Error {
+      name = "ExitPromptError";
+    };
+    HookError = class extends Error {
+      name = "HookError";
+    };
+    ValidationError = class extends Error {
+      name = "ValidationError";
+    };
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/hook-engine.js
+import { AsyncLocalStorage, AsyncResource } from "node:async_hooks";
+function createStore(rl) {
+  const store = {
+    rl,
+    hooks: [],
+    hooksCleanup: [],
+    hooksEffect: [],
+    index: 0,
+    handleChange() {
+    }
+  };
+  return store;
+}
+function withHooks(rl, cb) {
+  const store = createStore(rl);
+  return hookStorage.run(store, () => {
+    function cycle(render) {
+      store.handleChange = () => {
+        store.index = 0;
+        render();
+      };
+      store.handleChange();
+    }
+    return cb(cycle);
+  });
+}
+function getStore() {
+  const store = hookStorage.getStore();
+  if (!store) {
+    throw new HookError("[Inquirer] Hook functions can only be called from within a prompt");
+  }
+  return store;
+}
+function readline() {
+  return getStore().rl;
+}
+function withUpdates(fn) {
+  const wrapped = (...args) => {
+    const store = getStore();
+    let shouldUpdate = false;
+    const oldHandleChange = store.handleChange;
+    store.handleChange = () => {
+      shouldUpdate = true;
+    };
+    const returnValue = fn(...args);
+    if (shouldUpdate) {
+      oldHandleChange();
+    }
+    store.handleChange = oldHandleChange;
+    return returnValue;
+  };
+  return AsyncResource.bind(wrapped);
+}
+function withPointer(cb) {
+  const store = getStore();
+  const { index } = store;
+  const pointer = {
+    get() {
+      return store.hooks[index];
+    },
+    set(value) {
+      store.hooks[index] = value;
+    },
+    initialized: index in store.hooks
+  };
+  const returnValue = cb(pointer);
+  store.index++;
+  return returnValue;
+}
+function handleChange() {
+  getStore().handleChange();
+}
+var hookStorage, effectScheduler;
+var init_hook_engine = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/hook-engine.js"() {
+    init_errors();
+    hookStorage = new AsyncLocalStorage();
+    effectScheduler = {
+      queue(cb) {
+        const store = getStore();
+        const { index } = store;
+        store.hooksEffect.push(() => {
+          store.hooksCleanup[index]?.();
+          const cleanFn = cb(readline());
+          if (cleanFn != null && typeof cleanFn !== "function") {
+            throw new ValidationError("useEffect return value must be a cleanup function or nothing.");
+          }
+          store.hooksCleanup[index] = cleanFn;
+        });
+      },
+      run() {
+        const store = getStore();
+        withUpdates(() => {
+          store.hooksEffect.forEach((effect) => {
+            effect();
+          });
+          store.hooksEffect.length = 0;
+        })();
+      },
+      clearAll() {
+        const store = getStore();
+        store.hooksCleanup.forEach((cleanFn) => {
+          cleanFn?.();
+        });
+        store.hooksEffect.length = 0;
+        store.hooksCleanup.length = 0;
+      }
+    };
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/use-state.js
+function useState(defaultValue) {
+  return withPointer((pointer) => {
+    const setFn = (newValue) => {
+      if (pointer.get() !== newValue) {
+        pointer.set(newValue);
+        handleChange();
+      }
+    };
+    if (pointer.initialized) {
+      return [pointer.get(), setFn];
+    }
+    const value = typeof defaultValue === "function" ? defaultValue() : defaultValue;
+    pointer.set(value);
+    return [value, setFn];
+  });
+}
+var init_use_state = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/use-state.js"() {
+    init_hook_engine();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/use-effect.js
+function useEffect(cb, depArray) {
+  withPointer((pointer) => {
+    const oldDeps = pointer.get();
+    const hasChanged = !Array.isArray(oldDeps) || depArray.some((dep, i) => !Object.is(dep, oldDeps[i]));
+    if (hasChanged) {
+      effectScheduler.queue(cb);
+    }
+    pointer.set(depArray);
+  });
+}
+var init_use_effect = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/use-effect.js"() {
+    init_hook_engine();
+  }
+});
 
 // ../../node_modules/yoctocolors-cjs/index.js
 var require_yoctocolors_cjs = __commonJS({
@@ -109,6 +542,467 @@ var require_yoctocolors_cjs = __commonJS({
     colors8.bgCyanBright = format(106, 49);
     colors8.bgWhiteBright = format(107, 49);
     module.exports = colors8;
+  }
+});
+
+// ../../node_modules/@inquirer/figures/dist/esm/index.js
+import process2 from "node:process";
+function isUnicodeSupported() {
+  if (process2.platform !== "win32") {
+    return process2.env["TERM"] !== "linux";
+  }
+  return Boolean(process2.env["WT_SESSION"]) || // Windows Terminal
+  Boolean(process2.env["TERMINUS_SUBLIME"]) || // Terminus (<0.2.27)
+  process2.env["ConEmuTask"] === "{cmd::Cmder}" || // ConEmu and cmder
+  process2.env["TERM_PROGRAM"] === "Terminus-Sublime" || process2.env["TERM_PROGRAM"] === "vscode" || process2.env["TERM"] === "xterm-256color" || process2.env["TERM"] === "alacritty" || process2.env["TERMINAL_EMULATOR"] === "JetBrains-JediTerm";
+}
+var common, specialMainSymbols, specialFallbackSymbols, mainSymbols, fallbackSymbols, shouldUseMain, figures, esm_default, replacements, replaceSymbols;
+var init_esm = __esm({
+  "../../node_modules/@inquirer/figures/dist/esm/index.js"() {
+    common = {
+      circleQuestionMark: "(?)",
+      questionMarkPrefix: "(?)",
+      square: "\u2588",
+      squareDarkShade: "\u2593",
+      squareMediumShade: "\u2592",
+      squareLightShade: "\u2591",
+      squareTop: "\u2580",
+      squareBottom: "\u2584",
+      squareLeft: "\u258C",
+      squareRight: "\u2590",
+      squareCenter: "\u25A0",
+      bullet: "\u25CF",
+      dot: "\u2024",
+      ellipsis: "\u2026",
+      pointerSmall: "\u203A",
+      triangleUp: "\u25B2",
+      triangleUpSmall: "\u25B4",
+      triangleDown: "\u25BC",
+      triangleDownSmall: "\u25BE",
+      triangleLeftSmall: "\u25C2",
+      triangleRightSmall: "\u25B8",
+      home: "\u2302",
+      heart: "\u2665",
+      musicNote: "\u266A",
+      musicNoteBeamed: "\u266B",
+      arrowUp: "\u2191",
+      arrowDown: "\u2193",
+      arrowLeft: "\u2190",
+      arrowRight: "\u2192",
+      arrowLeftRight: "\u2194",
+      arrowUpDown: "\u2195",
+      almostEqual: "\u2248",
+      notEqual: "\u2260",
+      lessOrEqual: "\u2264",
+      greaterOrEqual: "\u2265",
+      identical: "\u2261",
+      infinity: "\u221E",
+      subscriptZero: "\u2080",
+      subscriptOne: "\u2081",
+      subscriptTwo: "\u2082",
+      subscriptThree: "\u2083",
+      subscriptFour: "\u2084",
+      subscriptFive: "\u2085",
+      subscriptSix: "\u2086",
+      subscriptSeven: "\u2087",
+      subscriptEight: "\u2088",
+      subscriptNine: "\u2089",
+      oneHalf: "\xBD",
+      oneThird: "\u2153",
+      oneQuarter: "\xBC",
+      oneFifth: "\u2155",
+      oneSixth: "\u2159",
+      oneEighth: "\u215B",
+      twoThirds: "\u2154",
+      twoFifths: "\u2156",
+      threeQuarters: "\xBE",
+      threeFifths: "\u2157",
+      threeEighths: "\u215C",
+      fourFifths: "\u2158",
+      fiveSixths: "\u215A",
+      fiveEighths: "\u215D",
+      sevenEighths: "\u215E",
+      line: "\u2500",
+      lineBold: "\u2501",
+      lineDouble: "\u2550",
+      lineDashed0: "\u2504",
+      lineDashed1: "\u2505",
+      lineDashed2: "\u2508",
+      lineDashed3: "\u2509",
+      lineDashed4: "\u254C",
+      lineDashed5: "\u254D",
+      lineDashed6: "\u2574",
+      lineDashed7: "\u2576",
+      lineDashed8: "\u2578",
+      lineDashed9: "\u257A",
+      lineDashed10: "\u257C",
+      lineDashed11: "\u257E",
+      lineDashed12: "\u2212",
+      lineDashed13: "\u2013",
+      lineDashed14: "\u2010",
+      lineDashed15: "\u2043",
+      lineVertical: "\u2502",
+      lineVerticalBold: "\u2503",
+      lineVerticalDouble: "\u2551",
+      lineVerticalDashed0: "\u2506",
+      lineVerticalDashed1: "\u2507",
+      lineVerticalDashed2: "\u250A",
+      lineVerticalDashed3: "\u250B",
+      lineVerticalDashed4: "\u254E",
+      lineVerticalDashed5: "\u254F",
+      lineVerticalDashed6: "\u2575",
+      lineVerticalDashed7: "\u2577",
+      lineVerticalDashed8: "\u2579",
+      lineVerticalDashed9: "\u257B",
+      lineVerticalDashed10: "\u257D",
+      lineVerticalDashed11: "\u257F",
+      lineDownLeft: "\u2510",
+      lineDownLeftArc: "\u256E",
+      lineDownBoldLeftBold: "\u2513",
+      lineDownBoldLeft: "\u2512",
+      lineDownLeftBold: "\u2511",
+      lineDownDoubleLeftDouble: "\u2557",
+      lineDownDoubleLeft: "\u2556",
+      lineDownLeftDouble: "\u2555",
+      lineDownRight: "\u250C",
+      lineDownRightArc: "\u256D",
+      lineDownBoldRightBold: "\u250F",
+      lineDownBoldRight: "\u250E",
+      lineDownRightBold: "\u250D",
+      lineDownDoubleRightDouble: "\u2554",
+      lineDownDoubleRight: "\u2553",
+      lineDownRightDouble: "\u2552",
+      lineUpLeft: "\u2518",
+      lineUpLeftArc: "\u256F",
+      lineUpBoldLeftBold: "\u251B",
+      lineUpBoldLeft: "\u251A",
+      lineUpLeftBold: "\u2519",
+      lineUpDoubleLeftDouble: "\u255D",
+      lineUpDoubleLeft: "\u255C",
+      lineUpLeftDouble: "\u255B",
+      lineUpRight: "\u2514",
+      lineUpRightArc: "\u2570",
+      lineUpBoldRightBold: "\u2517",
+      lineUpBoldRight: "\u2516",
+      lineUpRightBold: "\u2515",
+      lineUpDoubleRightDouble: "\u255A",
+      lineUpDoubleRight: "\u2559",
+      lineUpRightDouble: "\u2558",
+      lineUpDownLeft: "\u2524",
+      lineUpBoldDownBoldLeftBold: "\u252B",
+      lineUpBoldDownBoldLeft: "\u2528",
+      lineUpDownLeftBold: "\u2525",
+      lineUpBoldDownLeftBold: "\u2529",
+      lineUpDownBoldLeftBold: "\u252A",
+      lineUpDownBoldLeft: "\u2527",
+      lineUpBoldDownLeft: "\u2526",
+      lineUpDoubleDownDoubleLeftDouble: "\u2563",
+      lineUpDoubleDownDoubleLeft: "\u2562",
+      lineUpDownLeftDouble: "\u2561",
+      lineUpDownRight: "\u251C",
+      lineUpBoldDownBoldRightBold: "\u2523",
+      lineUpBoldDownBoldRight: "\u2520",
+      lineUpDownRightBold: "\u251D",
+      lineUpBoldDownRightBold: "\u2521",
+      lineUpDownBoldRightBold: "\u2522",
+      lineUpDownBoldRight: "\u251F",
+      lineUpBoldDownRight: "\u251E",
+      lineUpDoubleDownDoubleRightDouble: "\u2560",
+      lineUpDoubleDownDoubleRight: "\u255F",
+      lineUpDownRightDouble: "\u255E",
+      lineDownLeftRight: "\u252C",
+      lineDownBoldLeftBoldRightBold: "\u2533",
+      lineDownLeftBoldRightBold: "\u252F",
+      lineDownBoldLeftRight: "\u2530",
+      lineDownBoldLeftBoldRight: "\u2531",
+      lineDownBoldLeftRightBold: "\u2532",
+      lineDownLeftRightBold: "\u252E",
+      lineDownLeftBoldRight: "\u252D",
+      lineDownDoubleLeftDoubleRightDouble: "\u2566",
+      lineDownDoubleLeftRight: "\u2565",
+      lineDownLeftDoubleRightDouble: "\u2564",
+      lineUpLeftRight: "\u2534",
+      lineUpBoldLeftBoldRightBold: "\u253B",
+      lineUpLeftBoldRightBold: "\u2537",
+      lineUpBoldLeftRight: "\u2538",
+      lineUpBoldLeftBoldRight: "\u2539",
+      lineUpBoldLeftRightBold: "\u253A",
+      lineUpLeftRightBold: "\u2536",
+      lineUpLeftBoldRight: "\u2535",
+      lineUpDoubleLeftDoubleRightDouble: "\u2569",
+      lineUpDoubleLeftRight: "\u2568",
+      lineUpLeftDoubleRightDouble: "\u2567",
+      lineUpDownLeftRight: "\u253C",
+      lineUpBoldDownBoldLeftBoldRightBold: "\u254B",
+      lineUpDownBoldLeftBoldRightBold: "\u2548",
+      lineUpBoldDownLeftBoldRightBold: "\u2547",
+      lineUpBoldDownBoldLeftRightBold: "\u254A",
+      lineUpBoldDownBoldLeftBoldRight: "\u2549",
+      lineUpBoldDownLeftRight: "\u2540",
+      lineUpDownBoldLeftRight: "\u2541",
+      lineUpDownLeftBoldRight: "\u253D",
+      lineUpDownLeftRightBold: "\u253E",
+      lineUpBoldDownBoldLeftRight: "\u2542",
+      lineUpDownLeftBoldRightBold: "\u253F",
+      lineUpBoldDownLeftBoldRight: "\u2543",
+      lineUpBoldDownLeftRightBold: "\u2544",
+      lineUpDownBoldLeftBoldRight: "\u2545",
+      lineUpDownBoldLeftRightBold: "\u2546",
+      lineUpDoubleDownDoubleLeftDoubleRightDouble: "\u256C",
+      lineUpDoubleDownDoubleLeftRight: "\u256B",
+      lineUpDownLeftDoubleRightDouble: "\u256A",
+      lineCross: "\u2573",
+      lineBackslash: "\u2572",
+      lineSlash: "\u2571"
+    };
+    specialMainSymbols = {
+      tick: "\u2714",
+      info: "\u2139",
+      warning: "\u26A0",
+      cross: "\u2718",
+      squareSmall: "\u25FB",
+      squareSmallFilled: "\u25FC",
+      circle: "\u25EF",
+      circleFilled: "\u25C9",
+      circleDotted: "\u25CC",
+      circleDouble: "\u25CE",
+      circleCircle: "\u24DE",
+      circleCross: "\u24E7",
+      circlePipe: "\u24BE",
+      radioOn: "\u25C9",
+      radioOff: "\u25EF",
+      checkboxOn: "\u2612",
+      checkboxOff: "\u2610",
+      checkboxCircleOn: "\u24E7",
+      checkboxCircleOff: "\u24BE",
+      pointer: "\u276F",
+      triangleUpOutline: "\u25B3",
+      triangleLeft: "\u25C0",
+      triangleRight: "\u25B6",
+      lozenge: "\u25C6",
+      lozengeOutline: "\u25C7",
+      hamburger: "\u2630",
+      smiley: "\u32E1",
+      mustache: "\u0DF4",
+      star: "\u2605",
+      play: "\u25B6",
+      nodejs: "\u2B22",
+      oneSeventh: "\u2150",
+      oneNinth: "\u2151",
+      oneTenth: "\u2152"
+    };
+    specialFallbackSymbols = {
+      tick: "\u221A",
+      info: "i",
+      warning: "\u203C",
+      cross: "\xD7",
+      squareSmall: "\u25A1",
+      squareSmallFilled: "\u25A0",
+      circle: "( )",
+      circleFilled: "(*)",
+      circleDotted: "( )",
+      circleDouble: "( )",
+      circleCircle: "(\u25CB)",
+      circleCross: "(\xD7)",
+      circlePipe: "(\u2502)",
+      radioOn: "(*)",
+      radioOff: "( )",
+      checkboxOn: "[\xD7]",
+      checkboxOff: "[ ]",
+      checkboxCircleOn: "(\xD7)",
+      checkboxCircleOff: "( )",
+      pointer: ">",
+      triangleUpOutline: "\u2206",
+      triangleLeft: "\u25C4",
+      triangleRight: "\u25BA",
+      lozenge: "\u2666",
+      lozengeOutline: "\u25CA",
+      hamburger: "\u2261",
+      smiley: "\u263A",
+      mustache: "\u250C\u2500\u2510",
+      star: "\u2736",
+      play: "\u25BA",
+      nodejs: "\u2666",
+      oneSeventh: "1/7",
+      oneNinth: "1/9",
+      oneTenth: "1/10"
+    };
+    mainSymbols = { ...common, ...specialMainSymbols };
+    fallbackSymbols = {
+      ...common,
+      ...specialFallbackSymbols
+    };
+    shouldUseMain = isUnicodeSupported();
+    figures = shouldUseMain ? mainSymbols : fallbackSymbols;
+    esm_default = figures;
+    replacements = Object.entries(specialMainSymbols);
+    replaceSymbols = (string, { useFallback = !shouldUseMain } = {}) => {
+      if (useFallback) {
+        for (const [key, mainSymbol] of replacements) {
+          const fallbackSymbol = fallbackSymbols[key];
+          if (!fallbackSymbol) {
+            throw new Error(`Unable to find fallback for ${key}`);
+          }
+          string = string.replaceAll(mainSymbol, fallbackSymbol);
+        }
+      }
+      return string;
+    };
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/theme.js
+var import_yoctocolors_cjs, defaultTheme;
+var init_theme = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/theme.js"() {
+    import_yoctocolors_cjs = __toESM(require_yoctocolors_cjs(), 1);
+    init_esm();
+    defaultTheme = {
+      prefix: {
+        idle: import_yoctocolors_cjs.default.blue("?"),
+        // TODO: use figure
+        done: import_yoctocolors_cjs.default.green(esm_default.tick)
+      },
+      spinner: {
+        interval: 80,
+        frames: ["\u280B", "\u2819", "\u2839", "\u2838", "\u283C", "\u2834", "\u2826", "\u2827", "\u2807", "\u280F"].map((frame) => import_yoctocolors_cjs.default.yellow(frame))
+      },
+      style: {
+        answer: import_yoctocolors_cjs.default.cyan,
+        message: import_yoctocolors_cjs.default.bold,
+        error: (text) => import_yoctocolors_cjs.default.red(`> ${text}`),
+        defaultAnswer: (text) => import_yoctocolors_cjs.default.dim(`(${text})`),
+        help: import_yoctocolors_cjs.default.dim,
+        highlight: import_yoctocolors_cjs.default.cyan,
+        key: (text) => import_yoctocolors_cjs.default.cyan(import_yoctocolors_cjs.default.bold(`<${text}>`))
+      }
+    };
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/make-theme.js
+function isPlainObject(value) {
+  if (typeof value !== "object" || value === null)
+    return false;
+  let proto = value;
+  while (Object.getPrototypeOf(proto) !== null) {
+    proto = Object.getPrototypeOf(proto);
+  }
+  return Object.getPrototypeOf(value) === proto;
+}
+function deepMerge(...objects) {
+  const output = {};
+  for (const obj of objects) {
+    for (const [key, value] of Object.entries(obj)) {
+      const prevValue = output[key];
+      output[key] = isPlainObject(prevValue) && isPlainObject(value) ? deepMerge(prevValue, value) : value;
+    }
+  }
+  return output;
+}
+function makeTheme(...themes) {
+  const themesToMerge = [
+    defaultTheme,
+    ...themes.filter((theme) => theme != null)
+  ];
+  return deepMerge(...themesToMerge);
+}
+var init_make_theme = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/make-theme.js"() {
+    init_theme();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/use-prefix.js
+import { AsyncResource as AsyncResource2 } from "node:async_hooks";
+function usePrefix({ status = "idle", theme }) {
+  const [showLoader, setShowLoader] = useState(false);
+  const [tick, setTick] = useState(0);
+  const { prefix, spinner } = makeTheme(theme);
+  useEffect(() => {
+    if (status === "loading") {
+      let tickInterval;
+      let inc = -1;
+      const delayTimeout = setTimeout(AsyncResource2.bind(() => {
+        setShowLoader(true);
+        tickInterval = setInterval(AsyncResource2.bind(() => {
+          inc = inc + 1;
+          setTick(inc % spinner.frames.length);
+        }), spinner.interval);
+      }), 300);
+      return () => {
+        clearTimeout(delayTimeout);
+        clearInterval(tickInterval);
+      };
+    } else {
+      setShowLoader(false);
+    }
+  }, [status]);
+  if (showLoader) {
+    return spinner.frames[tick];
+  }
+  const iconName = status === "loading" ? "idle" : status;
+  return typeof prefix === "string" ? prefix : prefix[iconName] ?? prefix["idle"];
+}
+var init_use_prefix = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/use-prefix.js"() {
+    init_use_state();
+    init_use_effect();
+    init_make_theme();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/use-memo.js
+function useMemo(fn, dependencies) {
+  return withPointer((pointer) => {
+    const prev = pointer.get();
+    if (!prev || prev.dependencies.length !== dependencies.length || prev.dependencies.some((dep, i) => dep !== dependencies[i])) {
+      const value = fn();
+      pointer.set({ value, dependencies });
+      return value;
+    }
+    return prev.value;
+  });
+}
+var init_use_memo = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/use-memo.js"() {
+    init_hook_engine();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/use-ref.js
+function useRef(val) {
+  return useState({ current: val })[0];
+}
+var init_use_ref = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/use-ref.js"() {
+    init_use_state();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/use-keypress.js
+function useKeypress(userHandler) {
+  const signal = useRef(userHandler);
+  signal.current = userHandler;
+  useEffect((rl) => {
+    let ignore = false;
+    const handler = withUpdates((_input, event) => {
+      if (ignore)
+        return;
+      void signal.current(event, rl);
+    });
+    rl.input.on("keypress", handler);
+    return () => {
+      ignore = true;
+      rl.input.removeListener("keypress", handler);
+    };
+  }, []);
+}
+var init_use_keypress = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/use-keypress.js"() {
+    init_use_ref();
+    init_use_effect();
+    init_hook_engine();
   }
 });
 
@@ -1492,6 +2386,127 @@ var require_wrap_ansi = __commonJS({
   }
 });
 
+// ../../node_modules/@inquirer/core/dist/esm/lib/utils.js
+function breakLines(content, width) {
+  return content.split("\n").flatMap((line) => (0, import_wrap_ansi.default)(line, width, { trim: false, hard: true }).split("\n").map((str) => str.trimEnd())).join("\n");
+}
+function readlineWidth() {
+  return (0, import_cli_width.default)({ defaultWidth: 80, output: readline().output });
+}
+var import_cli_width, import_wrap_ansi;
+var init_utils = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/utils.js"() {
+    import_cli_width = __toESM(require_cli_width(), 1);
+    import_wrap_ansi = __toESM(require_wrap_ansi(), 1);
+    init_hook_engine();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/pagination/lines.js
+function split(content, width) {
+  return breakLines(content, width).split("\n");
+}
+function rotate(count, items) {
+  const max = items.length;
+  const offset = (count % max + max) % max;
+  return [...items.slice(offset), ...items.slice(0, offset)];
+}
+function lines({ items, width, renderItem, active, position: requested, pageSize }) {
+  const layouts = items.map((item, index) => ({
+    item,
+    index,
+    isActive: index === active
+  }));
+  const layoutsInPage = rotate(active - requested, layouts).slice(0, pageSize);
+  const renderItemAt = (index) => layoutsInPage[index] == null ? [] : split(renderItem(layoutsInPage[index]), width);
+  const pageBuffer = Array.from({ length: pageSize });
+  const activeItem = renderItemAt(requested).slice(0, pageSize);
+  const position = requested + activeItem.length <= pageSize ? requested : pageSize - activeItem.length;
+  pageBuffer.splice(position, activeItem.length, ...activeItem);
+  let bufferPointer = position + activeItem.length;
+  let layoutPointer = requested + 1;
+  while (bufferPointer < pageSize && layoutPointer < layoutsInPage.length) {
+    for (const line of renderItemAt(layoutPointer)) {
+      pageBuffer[bufferPointer++] = line;
+      if (bufferPointer >= pageSize)
+        break;
+    }
+    layoutPointer++;
+  }
+  bufferPointer = position - 1;
+  layoutPointer = requested - 1;
+  while (bufferPointer >= 0 && layoutPointer >= 0) {
+    for (const line of renderItemAt(layoutPointer).reverse()) {
+      pageBuffer[bufferPointer--] = line;
+      if (bufferPointer < 0)
+        break;
+    }
+    layoutPointer--;
+  }
+  return pageBuffer.filter((line) => typeof line === "string");
+}
+var init_lines = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/pagination/lines.js"() {
+    init_utils();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/pagination/position.js
+function finite({ active, pageSize, total }) {
+  const middle = Math.floor(pageSize / 2);
+  if (total <= pageSize || active < middle)
+    return active;
+  if (active >= total - middle)
+    return active + pageSize - total;
+  return middle;
+}
+function infinite({ active, lastActive, total, pageSize, pointer }) {
+  if (total <= pageSize)
+    return active;
+  if (lastActive < active && active - lastActive < pageSize) {
+    return Math.min(Math.floor(pageSize / 2), pointer + active - lastActive);
+  }
+  return pointer;
+}
+var init_position = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/pagination/position.js"() {
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/pagination/use-pagination.js
+function usePagination({ items, active, renderItem, pageSize, loop = true }) {
+  const state = useRef({ position: 0, lastActive: 0 });
+  const position = loop ? infinite({
+    active,
+    lastActive: state.current.lastActive,
+    total: items.length,
+    pageSize,
+    pointer: state.current.position
+  }) : finite({
+    active,
+    total: items.length,
+    pageSize
+  });
+  state.current.position = position;
+  state.current.lastActive = active;
+  return lines({
+    items,
+    width: readlineWidth(),
+    renderItem,
+    active,
+    position,
+    pageSize
+  }).join("\n");
+}
+var init_use_pagination = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/pagination/use-pagination.js"() {
+    init_use_ref();
+    init_utils();
+    init_lines();
+    init_position();
+  }
+});
+
 // ../../node_modules/mute-stream/lib/index.js
 var require_lib = __commonJS({
   "../../node_modules/mute-stream/lib/index.js"(exports, module) {
@@ -1611,6 +2626,274 @@ var require_lib = __commonJS({
       }
     };
     module.exports = MuteStream2;
+  }
+});
+
+// ../../node_modules/signal-exit/dist/mjs/signals.js
+var signals;
+var init_signals = __esm({
+  "../../node_modules/signal-exit/dist/mjs/signals.js"() {
+    signals = [];
+    signals.push("SIGHUP", "SIGINT", "SIGTERM");
+    if (process.platform !== "win32") {
+      signals.push(
+        "SIGALRM",
+        "SIGABRT",
+        "SIGVTALRM",
+        "SIGXCPU",
+        "SIGXFSZ",
+        "SIGUSR2",
+        "SIGTRAP",
+        "SIGSYS",
+        "SIGQUIT",
+        "SIGIOT"
+        // should detect profiler and enable/disable accordingly.
+        // see #21
+        // 'SIGPROF'
+      );
+    }
+    if (process.platform === "linux") {
+      signals.push("SIGIO", "SIGPOLL", "SIGPWR", "SIGSTKFLT");
+    }
+  }
+});
+
+// ../../node_modules/signal-exit/dist/mjs/index.js
+var processOk, kExitEmitter, global, ObjectDefineProperty, Emitter, SignalExitBase, signalExitWrap, SignalExitFallback, SignalExit, process3, onExit, load, unload;
+var init_mjs = __esm({
+  "../../node_modules/signal-exit/dist/mjs/index.js"() {
+    init_signals();
+    processOk = (process4) => !!process4 && typeof process4 === "object" && typeof process4.removeListener === "function" && typeof process4.emit === "function" && typeof process4.reallyExit === "function" && typeof process4.listeners === "function" && typeof process4.kill === "function" && typeof process4.pid === "number" && typeof process4.on === "function";
+    kExitEmitter = Symbol.for("signal-exit emitter");
+    global = globalThis;
+    ObjectDefineProperty = Object.defineProperty.bind(Object);
+    Emitter = class {
+      emitted = {
+        afterExit: false,
+        exit: false
+      };
+      listeners = {
+        afterExit: [],
+        exit: []
+      };
+      count = 0;
+      id = Math.random();
+      constructor() {
+        if (global[kExitEmitter]) {
+          return global[kExitEmitter];
+        }
+        ObjectDefineProperty(global, kExitEmitter, {
+          value: this,
+          writable: false,
+          enumerable: false,
+          configurable: false
+        });
+      }
+      on(ev, fn) {
+        this.listeners[ev].push(fn);
+      }
+      removeListener(ev, fn) {
+        const list = this.listeners[ev];
+        const i = list.indexOf(fn);
+        if (i === -1) {
+          return;
+        }
+        if (i === 0 && list.length === 1) {
+          list.length = 0;
+        } else {
+          list.splice(i, 1);
+        }
+      }
+      emit(ev, code, signal) {
+        if (this.emitted[ev]) {
+          return false;
+        }
+        this.emitted[ev] = true;
+        let ret = false;
+        for (const fn of this.listeners[ev]) {
+          ret = fn(code, signal) === true || ret;
+        }
+        if (ev === "exit") {
+          ret = this.emit("afterExit", code, signal) || ret;
+        }
+        return ret;
+      }
+    };
+    SignalExitBase = class {
+    };
+    signalExitWrap = (handler) => {
+      return {
+        onExit(cb, opts) {
+          return handler.onExit(cb, opts);
+        },
+        load() {
+          return handler.load();
+        },
+        unload() {
+          return handler.unload();
+        }
+      };
+    };
+    SignalExitFallback = class extends SignalExitBase {
+      onExit() {
+        return () => {
+        };
+      }
+      load() {
+      }
+      unload() {
+      }
+    };
+    SignalExit = class extends SignalExitBase {
+      // "SIGHUP" throws an `ENOSYS` error on Windows,
+      // so use a supported signal instead
+      /* c8 ignore start */
+      #hupSig = process3.platform === "win32" ? "SIGINT" : "SIGHUP";
+      /* c8 ignore stop */
+      #emitter = new Emitter();
+      #process;
+      #originalProcessEmit;
+      #originalProcessReallyExit;
+      #sigListeners = {};
+      #loaded = false;
+      constructor(process4) {
+        super();
+        this.#process = process4;
+        this.#sigListeners = {};
+        for (const sig of signals) {
+          this.#sigListeners[sig] = () => {
+            const listeners = this.#process.listeners(sig);
+            let { count } = this.#emitter;
+            const p = process4;
+            if (typeof p.__signal_exit_emitter__ === "object" && typeof p.__signal_exit_emitter__.count === "number") {
+              count += p.__signal_exit_emitter__.count;
+            }
+            if (listeners.length === count) {
+              this.unload();
+              const ret = this.#emitter.emit("exit", null, sig);
+              const s = sig === "SIGHUP" ? this.#hupSig : sig;
+              if (!ret)
+                process4.kill(process4.pid, s);
+            }
+          };
+        }
+        this.#originalProcessReallyExit = process4.reallyExit;
+        this.#originalProcessEmit = process4.emit;
+      }
+      onExit(cb, opts) {
+        if (!processOk(this.#process)) {
+          return () => {
+          };
+        }
+        if (this.#loaded === false) {
+          this.load();
+        }
+        const ev = opts?.alwaysLast ? "afterExit" : "exit";
+        this.#emitter.on(ev, cb);
+        return () => {
+          this.#emitter.removeListener(ev, cb);
+          if (this.#emitter.listeners["exit"].length === 0 && this.#emitter.listeners["afterExit"].length === 0) {
+            this.unload();
+          }
+        };
+      }
+      load() {
+        if (this.#loaded) {
+          return;
+        }
+        this.#loaded = true;
+        this.#emitter.count += 1;
+        for (const sig of signals) {
+          try {
+            const fn = this.#sigListeners[sig];
+            if (fn)
+              this.#process.on(sig, fn);
+          } catch (_) {
+          }
+        }
+        this.#process.emit = (ev, ...a) => {
+          return this.#processEmit(ev, ...a);
+        };
+        this.#process.reallyExit = (code) => {
+          return this.#processReallyExit(code);
+        };
+      }
+      unload() {
+        if (!this.#loaded) {
+          return;
+        }
+        this.#loaded = false;
+        signals.forEach((sig) => {
+          const listener = this.#sigListeners[sig];
+          if (!listener) {
+            throw new Error("Listener not defined for signal: " + sig);
+          }
+          try {
+            this.#process.removeListener(sig, listener);
+          } catch (_) {
+          }
+        });
+        this.#process.emit = this.#originalProcessEmit;
+        this.#process.reallyExit = this.#originalProcessReallyExit;
+        this.#emitter.count -= 1;
+      }
+      #processReallyExit(code) {
+        if (!processOk(this.#process)) {
+          return 0;
+        }
+        this.#process.exitCode = code || 0;
+        this.#emitter.emit("exit", this.#process.exitCode, null);
+        return this.#originalProcessReallyExit.call(this.#process, this.#process.exitCode);
+      }
+      #processEmit(ev, ...args) {
+        const og = this.#originalProcessEmit;
+        if (ev === "exit" && processOk(this.#process)) {
+          if (typeof args[0] === "number") {
+            this.#process.exitCode = args[0];
+          }
+          const ret = og.call(this.#process, ev, ...args);
+          this.#emitter.emit("exit", this.#process.exitCode, null);
+          return ret;
+        } else {
+          return og.call(this.#process, ev, ...args);
+        }
+      }
+    };
+    process3 = globalThis.process;
+    ({
+      onExit: (
+        /**
+         * Called when the process is exiting, whether via signal, explicit
+         * exit, or running out of stuff to do.
+         *
+         * If the global process object is not suitable for instrumentation,
+         * then this will be a no-op.
+         *
+         * Returns a function that may be used to unload signal-exit.
+         */
+        onExit
+      ),
+      load: (
+        /**
+         * Load the listeners.  Likely you never need to call this, unless
+         * doing a rather deep integration with signal-exit functionality.
+         * Mostly exposed for the benefit of testing.
+         *
+         * @internal
+         */
+        load
+      ),
+      unload: (
+        /**
+         * Unload the listeners.  Likely you never need to call this, unless
+         * doing a rather deep integration with signal-exit functionality.
+         * Mostly exposed for the benefit of testing.
+         *
+         * @internal
+         */
+        unload
+      )
+    } = signalExitWrap(processOk(process3) ? new SignalExit(process3) : new SignalExitFallback()));
   }
 });
 
@@ -1738,6 +3021,392 @@ var require_ansi_escapes = __commonJS({
         return ret + BEL;
       }
     };
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/screen-manager.js
+function cursorDown(n) {
+  return n > 0 ? import_ansi_escapes.default.cursorDown(n) : "";
+}
+var import_strip_ansi, import_ansi_escapes, height, lastLine, ScreenManager;
+var init_screen_manager = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/screen-manager.js"() {
+    import_strip_ansi = __toESM(require_strip_ansi(), 1);
+    import_ansi_escapes = __toESM(require_ansi_escapes(), 1);
+    init_utils();
+    height = (content) => content.split("\n").length;
+    lastLine = (content) => content.split("\n").pop() ?? "";
+    ScreenManager = class {
+      rl;
+      // These variables are keeping information to allow correct prompt re-rendering
+      height = 0;
+      extraLinesUnderPrompt = 0;
+      cursorPos;
+      constructor(rl) {
+        this.rl = rl;
+        this.rl = rl;
+        this.cursorPos = rl.getCursorPos();
+      }
+      write(content) {
+        this.rl.output.unmute();
+        this.rl.output.write(content);
+        this.rl.output.mute();
+      }
+      render(content, bottomContent = "") {
+        const promptLine = lastLine(content);
+        const rawPromptLine = (0, import_strip_ansi.default)(promptLine);
+        let prompt = rawPromptLine;
+        if (this.rl.line.length > 0) {
+          prompt = prompt.slice(0, -this.rl.line.length);
+        }
+        this.rl.setPrompt(prompt);
+        this.cursorPos = this.rl.getCursorPos();
+        const width = readlineWidth();
+        content = breakLines(content, width);
+        bottomContent = breakLines(bottomContent, width);
+        if (rawPromptLine.length % width === 0) {
+          content += "\n";
+        }
+        let output = content + (bottomContent ? "\n" + bottomContent : "");
+        const promptLineUpDiff = Math.floor(rawPromptLine.length / width) - this.cursorPos.rows;
+        const bottomContentHeight = promptLineUpDiff + (bottomContent ? height(bottomContent) : 0);
+        if (bottomContentHeight > 0)
+          output += import_ansi_escapes.default.cursorUp(bottomContentHeight);
+        output += import_ansi_escapes.default.cursorTo(this.cursorPos.cols);
+        this.write(cursorDown(this.extraLinesUnderPrompt) + import_ansi_escapes.default.eraseLines(this.height) + output);
+        this.extraLinesUnderPrompt = bottomContentHeight;
+        this.height = height(output);
+      }
+      checkCursorPos() {
+        const cursorPos = this.rl.getCursorPos();
+        if (cursorPos.cols !== this.cursorPos.cols) {
+          this.write(import_ansi_escapes.default.cursorTo(cursorPos.cols));
+          this.cursorPos = cursorPos;
+        }
+      }
+      done({ clearContent }) {
+        this.rl.setPrompt("");
+        let output = cursorDown(this.extraLinesUnderPrompt);
+        output += clearContent ? import_ansi_escapes.default.eraseLines(this.height) : "\n";
+        output += import_ansi_escapes.default.cursorShow;
+        this.write(output);
+        this.rl.close();
+      }
+    };
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/promise-polyfill.js
+var PromisePolyfill;
+var init_promise_polyfill = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/promise-polyfill.js"() {
+    PromisePolyfill = class extends Promise {
+      // Available starting from Node 22
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers
+      static withResolver() {
+        let resolve2;
+        let reject;
+        const promise = new Promise((res, rej) => {
+          resolve2 = res;
+          reject = rej;
+        });
+        return { promise, resolve: resolve2, reject };
+      }
+    };
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/create-prompt.js
+import * as readline2 from "node:readline";
+import { AsyncResource as AsyncResource3 } from "node:async_hooks";
+function createPrompt(view) {
+  const prompt = (config, context = {}) => {
+    const { input = process.stdin, signal } = context;
+    const cleanups = /* @__PURE__ */ new Set();
+    const output = new import_mute_stream.default();
+    output.pipe(context.output ?? process.stdout);
+    const rl = readline2.createInterface({
+      terminal: true,
+      input,
+      output
+    });
+    const screen = new ScreenManager(rl);
+    const { promise, resolve: resolve2, reject } = PromisePolyfill.withResolver();
+    const cancel = () => reject(new CancelPromptError());
+    if (signal) {
+      const abort = () => reject(new AbortPromptError({ cause: signal.reason }));
+      if (signal.aborted) {
+        abort();
+        return Object.assign(promise, { cancel });
+      }
+      signal.addEventListener("abort", abort);
+      cleanups.add(() => signal.removeEventListener("abort", abort));
+    }
+    cleanups.add(onExit((code, signal2) => {
+      reject(new ExitPromptError(`User force closed the prompt with ${code} ${signal2}`));
+    }));
+    const checkCursorPos = () => screen.checkCursorPos();
+    rl.input.on("keypress", checkCursorPos);
+    cleanups.add(() => rl.input.removeListener("keypress", checkCursorPos));
+    return withHooks(rl, (cycle) => {
+      const hooksCleanup = AsyncResource3.bind(() => effectScheduler.clearAll());
+      rl.on("close", hooksCleanup);
+      cleanups.add(() => rl.removeListener("close", hooksCleanup));
+      cycle(() => {
+        try {
+          const nextView = view(config, (value) => {
+            setImmediate(() => resolve2(value));
+          });
+          const [content, bottomContent] = typeof nextView === "string" ? [nextView] : nextView;
+          screen.render(content, bottomContent);
+          effectScheduler.run();
+        } catch (error) {
+          reject(error);
+        }
+      });
+      return Object.assign(promise.then((answer) => {
+        effectScheduler.clearAll();
+        return answer;
+      }, (error) => {
+        effectScheduler.clearAll();
+        throw error;
+      }).finally(() => {
+        cleanups.forEach((cleanup) => cleanup());
+        screen.done({ clearContent: Boolean(context.clearPromptOnDone) });
+        output.end();
+      }).then(() => promise), { cancel });
+    });
+  };
+  return prompt;
+}
+var import_mute_stream;
+var init_create_prompt = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/create-prompt.js"() {
+    import_mute_stream = __toESM(require_lib(), 1);
+    init_mjs();
+    init_screen_manager();
+    init_promise_polyfill();
+    init_hook_engine();
+    init_errors();
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/lib/Separator.js
+var import_yoctocolors_cjs2, Separator;
+var init_Separator = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/lib/Separator.js"() {
+    import_yoctocolors_cjs2 = __toESM(require_yoctocolors_cjs(), 1);
+    init_esm();
+    Separator = class {
+      separator = import_yoctocolors_cjs2.default.dim(Array.from({ length: 15 }).join(esm_default.line));
+      type = "separator";
+      constructor(separator) {
+        if (separator) {
+          this.separator = separator;
+        }
+      }
+      static isSeparator(choice) {
+        return Boolean(choice && typeof choice === "object" && "type" in choice && choice.type === "separator");
+      }
+    };
+  }
+});
+
+// ../../node_modules/@inquirer/core/dist/esm/index.js
+var init_esm2 = __esm({
+  "../../node_modules/@inquirer/core/dist/esm/index.js"() {
+    init_key();
+    init_errors();
+    init_use_prefix();
+    init_use_state();
+    init_use_effect();
+    init_use_memo();
+    init_use_ref();
+    init_use_keypress();
+    init_make_theme();
+    init_use_pagination();
+    init_create_prompt();
+    init_Separator();
+  }
+});
+
+// ../../node_modules/@inquirer/checkbox/dist/esm/index.js
+function isSelectable(item) {
+  return !Separator.isSeparator(item) && !item.disabled;
+}
+function isChecked(item) {
+  return isSelectable(item) && Boolean(item.checked);
+}
+function toggle(item) {
+  return isSelectable(item) ? { ...item, checked: !item.checked } : item;
+}
+function check(checked) {
+  return function(item) {
+    return isSelectable(item) ? { ...item, checked } : item;
+  };
+}
+function normalizeChoices(choices) {
+  return choices.map((choice) => {
+    if (Separator.isSeparator(choice))
+      return choice;
+    if (typeof choice === "string") {
+      return {
+        value: choice,
+        name: choice,
+        short: choice,
+        disabled: false,
+        checked: false
+      };
+    }
+    const name = choice.name ?? String(choice.value);
+    return {
+      value: choice.value,
+      name,
+      short: choice.short ?? name,
+      description: choice.description,
+      disabled: choice.disabled ?? false,
+      checked: choice.checked ?? false
+    };
+  });
+}
+var import_yoctocolors_cjs3, import_ansi_escapes2, checkboxTheme, esm_default2;
+var init_esm3 = __esm({
+  "../../node_modules/@inquirer/checkbox/dist/esm/index.js"() {
+    init_esm2();
+    import_yoctocolors_cjs3 = __toESM(require_yoctocolors_cjs(), 1);
+    init_esm();
+    import_ansi_escapes2 = __toESM(require_ansi_escapes(), 1);
+    init_esm2();
+    checkboxTheme = {
+      icon: {
+        checked: import_yoctocolors_cjs3.default.green(esm_default.circleFilled),
+        unchecked: esm_default.circle,
+        cursor: esm_default.pointer
+      },
+      style: {
+        disabledChoice: (text) => import_yoctocolors_cjs3.default.dim(`- ${text}`),
+        renderSelectedChoices: (selectedChoices) => selectedChoices.map((choice) => choice.short).join(", "),
+        description: (text) => import_yoctocolors_cjs3.default.cyan(text)
+      },
+      helpMode: "auto"
+    };
+    esm_default2 = createPrompt((config, done) => {
+      const { instructions, pageSize = 7, loop = true, required, validate = () => true } = config;
+      const theme = makeTheme(checkboxTheme, config.theme);
+      const firstRender = useRef(true);
+      const [status, setStatus] = useState("idle");
+      const prefix = usePrefix({ status, theme });
+      const [items, setItems] = useState(normalizeChoices(config.choices));
+      const bounds = useMemo(() => {
+        const first = items.findIndex(isSelectable);
+        const last = items.findLastIndex(isSelectable);
+        if (first === -1) {
+          throw new ValidationError("[checkbox prompt] No selectable choices. All choices are disabled.");
+        }
+        return { first, last };
+      }, [items]);
+      const [active, setActive] = useState(bounds.first);
+      const [showHelpTip, setShowHelpTip] = useState(true);
+      const [errorMsg, setError] = useState();
+      useKeypress(async (key) => {
+        if (isEnterKey(key)) {
+          const selection = items.filter(isChecked);
+          const isValid = await validate([...selection]);
+          if (required && !items.some(isChecked)) {
+            setError("At least one choice must be selected");
+          } else if (isValid === true) {
+            setStatus("done");
+            done(selection.map((choice) => choice.value));
+          } else {
+            setError(isValid || "You must select a valid value");
+          }
+        } else if (isUpKey(key) || isDownKey(key)) {
+          if (loop || isUpKey(key) && active !== bounds.first || isDownKey(key) && active !== bounds.last) {
+            const offset = isUpKey(key) ? -1 : 1;
+            let next = active;
+            do {
+              next = (next + offset + items.length) % items.length;
+            } while (!isSelectable(items[next]));
+            setActive(next);
+          }
+        } else if (isSpaceKey(key)) {
+          setError(void 0);
+          setShowHelpTip(false);
+          setItems(items.map((choice, i) => i === active ? toggle(choice) : choice));
+        } else if (key.name === "a") {
+          const selectAll = items.some((choice) => isSelectable(choice) && !choice.checked);
+          setItems(items.map(check(selectAll)));
+        } else if (key.name === "i") {
+          setItems(items.map(toggle));
+        } else if (isNumberKey(key)) {
+          const position = Number(key.name) - 1;
+          const item = items[position];
+          if (item != null && isSelectable(item)) {
+            setActive(position);
+            setItems(items.map((choice, i) => i === position ? toggle(choice) : choice));
+          }
+        }
+      });
+      const message = theme.style.message(config.message, status);
+      let description;
+      const page = usePagination({
+        items,
+        active,
+        renderItem({ item, isActive }) {
+          if (Separator.isSeparator(item)) {
+            return ` ${item.separator}`;
+          }
+          if (item.disabled) {
+            const disabledLabel = typeof item.disabled === "string" ? item.disabled : "(disabled)";
+            return theme.style.disabledChoice(`${item.name} ${disabledLabel}`);
+          }
+          if (isActive) {
+            description = item.description;
+          }
+          const checkbox = item.checked ? theme.icon.checked : theme.icon.unchecked;
+          const color = isActive ? theme.style.highlight : (x) => x;
+          const cursor = isActive ? theme.icon.cursor : " ";
+          return color(`${cursor}${checkbox} ${item.name}`);
+        },
+        pageSize,
+        loop
+      });
+      if (status === "done") {
+        const selection = items.filter(isChecked);
+        const answer = theme.style.answer(theme.style.renderSelectedChoices(selection, items));
+        return `${prefix} ${message} ${answer}`;
+      }
+      let helpTipTop = "";
+      let helpTipBottom = "";
+      if (theme.helpMode === "always" || theme.helpMode === "auto" && showHelpTip && (instructions === void 0 || instructions)) {
+        if (typeof instructions === "string") {
+          helpTipTop = instructions;
+        } else {
+          const keys = [
+            `${theme.style.key("space")} to select`,
+            `${theme.style.key("a")} to toggle all`,
+            `${theme.style.key("i")} to invert selection`,
+            `and ${theme.style.key("enter")} to proceed`
+          ];
+          helpTipTop = ` (Press ${keys.join(", ")})`;
+        }
+        if (items.length > pageSize && (theme.helpMode === "always" || // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        theme.helpMode === "auto" && firstRender.current)) {
+          helpTipBottom = `
+${theme.style.help("(Use arrow keys to reveal more choices)")}`;
+          firstRender.current = false;
+        }
+      }
+      const choiceDescription = description ? `
+${theme.style.description(description)}` : ``;
+      let error = "";
+      if (errorMsg) {
+        error = `
+${theme.style.error(errorMsg)}`;
+      }
+      return `${prefix} ${message}${helpTipTop}
+${page}${helpTipBottom}${choiceDescription}${error}${import_ansi_escapes2.default.cursorHide}`;
+    });
   }
 });
 
@@ -11263,6 +12932,1027 @@ var require_main = __commonJS({
   }
 });
 
+// ../../node_modules/@inquirer/editor/dist/esm/index.js
+import { AsyncResource as AsyncResource4 } from "node:async_hooks";
+var import_external_editor, esm_default3;
+var init_esm4 = __esm({
+  "../../node_modules/@inquirer/editor/dist/esm/index.js"() {
+    import_external_editor = __toESM(require_main(), 1);
+    init_esm2();
+    esm_default3 = createPrompt((config, done) => {
+      const { waitForUseInput = true, file: { postfix = config.postfix ?? ".txt", ...fileProps } = {}, validate = () => true } = config;
+      const theme = makeTheme(config.theme);
+      const [status, setStatus] = useState("idle");
+      const [value, setValue] = useState(config.default || "");
+      const [errorMsg, setError] = useState();
+      const prefix = usePrefix({ status, theme });
+      function startEditor(rl) {
+        rl.pause();
+        const editCallback = AsyncResource4.bind(async (error2, answer) => {
+          rl.resume();
+          if (error2) {
+            setError(error2.toString());
+          } else {
+            setStatus("loading");
+            const isValid = await validate(answer);
+            if (isValid === true) {
+              setError(void 0);
+              setStatus("done");
+              done(answer);
+            } else {
+              setValue(answer);
+              setError(isValid || "You must provide a valid value");
+              setStatus("idle");
+            }
+          }
+        });
+        (0, import_external_editor.editAsync)(value, (error2, answer) => void editCallback(error2, answer), {
+          postfix,
+          ...fileProps
+        });
+      }
+      useEffect((rl) => {
+        if (!waitForUseInput) {
+          startEditor(rl);
+        }
+      }, []);
+      useKeypress((key, rl) => {
+        if (status !== "idle") {
+          return;
+        }
+        if (isEnterKey(key)) {
+          startEditor(rl);
+        }
+      });
+      const message = theme.style.message(config.message, status);
+      let helpTip = "";
+      if (status === "loading") {
+        helpTip = theme.style.help("Received");
+      } else if (status === "idle") {
+        const enterKey = theme.style.key("enter");
+        helpTip = theme.style.help(`Press ${enterKey} to launch your preferred editor.`);
+      }
+      let error = "";
+      if (errorMsg) {
+        error = theme.style.error(errorMsg);
+      }
+      return [[prefix, message, helpTip].filter(Boolean).join(" "), error];
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/confirm/dist/esm/index.js
+var esm_default4;
+var init_esm5 = __esm({
+  "../../node_modules/@inquirer/confirm/dist/esm/index.js"() {
+    init_esm2();
+    esm_default4 = createPrompt((config, done) => {
+      const { transformer = (answer) => answer ? "yes" : "no" } = config;
+      const [status, setStatus] = useState("idle");
+      const [value, setValue] = useState("");
+      const theme = makeTheme(config.theme);
+      const prefix = usePrefix({ status, theme });
+      useKeypress((key, rl) => {
+        if (isEnterKey(key)) {
+          let answer = config.default !== false;
+          if (/^(y|yes)/i.test(value))
+            answer = true;
+          else if (/^(n|no)/i.test(value))
+            answer = false;
+          setValue(transformer(answer));
+          setStatus("done");
+          done(answer);
+        } else {
+          setValue(rl.line);
+        }
+      });
+      let formattedValue = value;
+      let defaultValue = "";
+      if (status === "done") {
+        formattedValue = theme.style.answer(value);
+      } else {
+        defaultValue = ` ${theme.style.defaultAnswer(config.default === false ? "y/N" : "Y/n")}`;
+      }
+      const message = theme.style.message(config.message, status);
+      return `${prefix} ${message}${defaultValue} ${formattedValue}`;
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/input/dist/esm/index.js
+var esm_default5;
+var init_esm6 = __esm({
+  "../../node_modules/@inquirer/input/dist/esm/index.js"() {
+    init_esm2();
+    esm_default5 = createPrompt((config, done) => {
+      const { required, validate = () => true } = config;
+      const theme = makeTheme(config.theme);
+      const [status, setStatus] = useState("idle");
+      const [defaultValue = "", setDefaultValue] = useState(config.default);
+      const [errorMsg, setError] = useState();
+      const [value, setValue] = useState("");
+      const prefix = usePrefix({ status, theme });
+      useKeypress(async (key, rl) => {
+        if (status !== "idle") {
+          return;
+        }
+        if (isEnterKey(key)) {
+          const answer = value || defaultValue;
+          setStatus("loading");
+          const isValid = required && !answer ? "You must provide a value" : await validate(answer);
+          if (isValid === true) {
+            setValue(answer);
+            setStatus("done");
+            done(answer);
+          } else {
+            rl.write(value);
+            setError(isValid || "You must provide a valid value");
+            setStatus("idle");
+          }
+        } else if (isBackspaceKey(key) && !value) {
+          setDefaultValue(void 0);
+        } else if (key.name === "tab" && !value) {
+          setDefaultValue(void 0);
+          rl.clearLine(0);
+          rl.write(defaultValue);
+          setValue(defaultValue);
+        } else {
+          setValue(rl.line);
+          setError(void 0);
+        }
+      });
+      const message = theme.style.message(config.message, status);
+      let formattedValue = value;
+      if (typeof config.transformer === "function") {
+        formattedValue = config.transformer(value, { isFinal: status === "done" });
+      } else if (status === "done") {
+        formattedValue = theme.style.answer(value);
+      }
+      let defaultStr;
+      if (defaultValue && status !== "done" && !value) {
+        defaultStr = theme.style.defaultAnswer(defaultValue);
+      }
+      let error = "";
+      if (errorMsg) {
+        error = theme.style.error(errorMsg);
+      }
+      return [
+        [prefix, message, defaultStr, formattedValue].filter((v) => v !== void 0).join(" "),
+        error
+      ];
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/number/dist/esm/index.js
+function isStepOf(value, step, min) {
+  const valuePow = value * Math.pow(10, 6);
+  const stepPow = step * Math.pow(10, 6);
+  const minPow = min * Math.pow(10, 6);
+  return (valuePow - (Number.isFinite(min) ? minPow : 0)) % stepPow === 0;
+}
+function validateNumber(value, { min, max, step }) {
+  if (value == null || Number.isNaN(value)) {
+    return false;
+  } else if (value < min || value > max) {
+    return `Value must be between ${min} and ${max}`;
+  } else if (step !== "any" && !isStepOf(value, step, min)) {
+    return `Value must be a multiple of ${step}${Number.isFinite(min) ? ` starting from ${min}` : ""}`;
+  }
+  return true;
+}
+var esm_default6;
+var init_esm7 = __esm({
+  "../../node_modules/@inquirer/number/dist/esm/index.js"() {
+    init_esm2();
+    esm_default6 = createPrompt((config, done) => {
+      const { validate = () => true, min = -Infinity, max = Infinity, step = 1, required = false } = config;
+      const theme = makeTheme(config.theme);
+      const [status, setStatus] = useState("idle");
+      const [value, setValue] = useState("");
+      const validDefault = validateNumber(config.default, { min, max, step }) === true ? config.default?.toString() : void 0;
+      const [defaultValue = "", setDefaultValue] = useState(validDefault);
+      const [errorMsg, setError] = useState();
+      const prefix = usePrefix({ status, theme });
+      useKeypress(async (key, rl) => {
+        if (status !== "idle") {
+          return;
+        }
+        if (isEnterKey(key)) {
+          const input = value || defaultValue;
+          const answer = input === "" ? void 0 : Number(input);
+          setStatus("loading");
+          let isValid = true;
+          if (required || answer != null) {
+            isValid = validateNumber(answer, { min, max, step });
+          }
+          if (isValid === true) {
+            isValid = await validate(answer);
+          }
+          if (isValid === true) {
+            setValue(String(answer ?? ""));
+            setStatus("done");
+            done(answer);
+          } else {
+            rl.write(value);
+            setError(isValid || "You must provide a valid numeric value");
+            setStatus("idle");
+          }
+        } else if (isBackspaceKey(key) && !value) {
+          setDefaultValue(void 0);
+        } else if (key.name === "tab" && !value) {
+          setDefaultValue(void 0);
+          rl.clearLine(0);
+          rl.write(defaultValue);
+          setValue(defaultValue);
+        } else {
+          setValue(rl.line);
+          setError(void 0);
+        }
+      });
+      const message = theme.style.message(config.message, status);
+      let formattedValue = value;
+      if (status === "done") {
+        formattedValue = theme.style.answer(value);
+      }
+      let defaultStr;
+      if (defaultValue && status !== "done" && !value) {
+        defaultStr = theme.style.defaultAnswer(defaultValue);
+      }
+      let error = "";
+      if (errorMsg) {
+        error = theme.style.error(errorMsg);
+      }
+      return [
+        [prefix, message, defaultStr, formattedValue].filter((v) => v !== void 0).join(" "),
+        error
+      ];
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/expand/dist/esm/index.js
+function normalizeChoices2(choices) {
+  return choices.map((choice) => {
+    if (Separator.isSeparator(choice)) {
+      return choice;
+    }
+    const name = "name" in choice ? choice.name : String(choice.value);
+    const value = "value" in choice ? choice.value : name;
+    return {
+      value,
+      name,
+      key: choice.key.toLowerCase()
+    };
+  });
+}
+var import_yoctocolors_cjs4, helpChoice, esm_default7;
+var init_esm8 = __esm({
+  "../../node_modules/@inquirer/expand/dist/esm/index.js"() {
+    init_esm2();
+    import_yoctocolors_cjs4 = __toESM(require_yoctocolors_cjs(), 1);
+    init_esm2();
+    helpChoice = {
+      key: "h",
+      name: "Help, list all options",
+      value: void 0
+    };
+    esm_default7 = createPrompt((config, done) => {
+      const { default: defaultKey = "h" } = config;
+      const choices = useMemo(() => normalizeChoices2(config.choices), [config.choices]);
+      const [status, setStatus] = useState("idle");
+      const [value, setValue] = useState("");
+      const [expanded, setExpanded] = useState(config.expanded ?? false);
+      const [errorMsg, setError] = useState();
+      const theme = makeTheme(config.theme);
+      const prefix = usePrefix({ theme, status });
+      useKeypress((event, rl) => {
+        if (isEnterKey(event)) {
+          const answer = (value || defaultKey).toLowerCase();
+          if (answer === "h" && !expanded) {
+            setExpanded(true);
+          } else {
+            const selectedChoice = choices.find((choice) => !Separator.isSeparator(choice) && choice.key === answer);
+            if (selectedChoice) {
+              setStatus("done");
+              setValue(answer);
+              done(selectedChoice.value);
+            } else if (value === "") {
+              setError("Please input a value");
+            } else {
+              setError(`"${import_yoctocolors_cjs4.default.red(value)}" isn't an available option`);
+            }
+          }
+        } else {
+          setValue(rl.line);
+          setError(void 0);
+        }
+      });
+      const message = theme.style.message(config.message, status);
+      if (status === "done") {
+        const selectedChoice = choices.find((choice) => !Separator.isSeparator(choice) && choice.key === value.toLowerCase());
+        return `${prefix} ${message} ${theme.style.answer(selectedChoice.name)}`;
+      }
+      const allChoices = expanded ? choices : [...choices, helpChoice];
+      let longChoices = "";
+      let shortChoices = allChoices.map((choice) => {
+        if (Separator.isSeparator(choice))
+          return "";
+        if (choice.key === defaultKey) {
+          return choice.key.toUpperCase();
+        }
+        return choice.key;
+      }).join("");
+      shortChoices = ` ${theme.style.defaultAnswer(shortChoices)}`;
+      if (expanded) {
+        shortChoices = "";
+        longChoices = allChoices.map((choice) => {
+          if (Separator.isSeparator(choice)) {
+            return ` ${choice.separator}`;
+          }
+          const line = `  ${choice.key}) ${choice.name}`;
+          if (choice.key === value.toLowerCase()) {
+            return theme.style.highlight(line);
+          }
+          return line;
+        }).join("\n");
+      }
+      let helpTip = "";
+      const currentOption = choices.find((choice) => !Separator.isSeparator(choice) && choice.key === value.toLowerCase());
+      if (currentOption) {
+        helpTip = `${import_yoctocolors_cjs4.default.cyan(">>")} ${currentOption.name}`;
+      }
+      let error = "";
+      if (errorMsg) {
+        error = theme.style.error(errorMsg);
+      }
+      return [
+        `${prefix} ${message}${shortChoices} ${value}`,
+        [longChoices, helpTip, error].filter(Boolean).join("\n")
+      ];
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/rawlist/dist/esm/index.js
+function isSelectableChoice(choice) {
+  return choice != null && !Separator.isSeparator(choice);
+}
+function normalizeChoices3(choices) {
+  let index = 0;
+  return choices.map((choice) => {
+    if (Separator.isSeparator(choice))
+      return choice;
+    index += 1;
+    if (typeof choice === "string") {
+      return {
+        value: choice,
+        name: choice,
+        short: choice,
+        key: String(index)
+      };
+    }
+    const name = choice.name ?? String(choice.value);
+    return {
+      value: choice.value,
+      name,
+      short: choice.short ?? name,
+      key: choice.key ?? String(index)
+    };
+  });
+}
+var import_yoctocolors_cjs5, numberRegex, esm_default8;
+var init_esm9 = __esm({
+  "../../node_modules/@inquirer/rawlist/dist/esm/index.js"() {
+    init_esm2();
+    import_yoctocolors_cjs5 = __toESM(require_yoctocolors_cjs(), 1);
+    init_esm2();
+    numberRegex = /\d+/;
+    esm_default8 = createPrompt((config, done) => {
+      const choices = useMemo(() => normalizeChoices3(config.choices), [config.choices]);
+      const [status, setStatus] = useState("idle");
+      const [value, setValue] = useState("");
+      const [errorMsg, setError] = useState();
+      const theme = makeTheme(config.theme);
+      const prefix = usePrefix({ status, theme });
+      useKeypress((key, rl) => {
+        if (isEnterKey(key)) {
+          let selectedChoice;
+          if (numberRegex.test(value)) {
+            const answer = Number.parseInt(value, 10) - 1;
+            selectedChoice = choices.filter(isSelectableChoice)[answer];
+          } else {
+            selectedChoice = choices.find((choice) => isSelectableChoice(choice) && choice.key === value);
+          }
+          if (isSelectableChoice(selectedChoice)) {
+            setValue(selectedChoice.short);
+            setStatus("done");
+            done(selectedChoice.value);
+          } else if (value === "") {
+            setError("Please input a value");
+          } else {
+            setError(`"${import_yoctocolors_cjs5.default.red(value)}" isn't an available option`);
+          }
+        } else {
+          setValue(rl.line);
+          setError(void 0);
+        }
+      });
+      const message = theme.style.message(config.message, status);
+      if (status === "done") {
+        return `${prefix} ${message} ${theme.style.answer(value)}`;
+      }
+      const choicesStr = choices.map((choice) => {
+        if (Separator.isSeparator(choice)) {
+          return ` ${choice.separator}`;
+        }
+        const line = `  ${choice.key}) ${choice.name}`;
+        if (choice.key === value.toLowerCase()) {
+          return theme.style.highlight(line);
+        }
+        return line;
+      }).join("\n");
+      let error = "";
+      if (errorMsg) {
+        error = theme.style.error(errorMsg);
+      }
+      return [
+        `${prefix} ${message} ${value}`,
+        [choicesStr, error].filter(Boolean).join("\n")
+      ];
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/password/dist/esm/index.js
+var import_ansi_escapes3, esm_default9;
+var init_esm10 = __esm({
+  "../../node_modules/@inquirer/password/dist/esm/index.js"() {
+    init_esm2();
+    import_ansi_escapes3 = __toESM(require_ansi_escapes(), 1);
+    esm_default9 = createPrompt((config, done) => {
+      const { validate = () => true } = config;
+      const theme = makeTheme(config.theme);
+      const [status, setStatus] = useState("idle");
+      const [errorMsg, setError] = useState();
+      const [value, setValue] = useState("");
+      const prefix = usePrefix({ status, theme });
+      useKeypress(async (key, rl) => {
+        if (status !== "idle") {
+          return;
+        }
+        if (isEnterKey(key)) {
+          const answer = value;
+          setStatus("loading");
+          const isValid = await validate(answer);
+          if (isValid === true) {
+            setValue(answer);
+            setStatus("done");
+            done(answer);
+          } else {
+            rl.write(value);
+            setError(isValid || "You must provide a valid value");
+            setStatus("idle");
+          }
+        } else {
+          setValue(rl.line);
+          setError(void 0);
+        }
+      });
+      const message = theme.style.message(config.message, status);
+      let formattedValue = "";
+      let helpTip;
+      if (config.mask) {
+        const maskChar = typeof config.mask === "string" ? config.mask : "*";
+        formattedValue = maskChar.repeat(value.length);
+      } else if (status !== "done") {
+        helpTip = `${theme.style.help("[input is masked]")}${import_ansi_escapes3.default.cursorHide}`;
+      }
+      if (status === "done") {
+        formattedValue = theme.style.answer(formattedValue);
+      }
+      let error = "";
+      if (errorMsg) {
+        error = theme.style.error(errorMsg);
+      }
+      return [[prefix, message, config.mask ? formattedValue : helpTip].join(" "), error];
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/search/dist/esm/index.js
+function isSelectable2(item) {
+  return !Separator.isSeparator(item) && !item.disabled;
+}
+function normalizeChoices4(choices) {
+  return choices.map((choice) => {
+    if (Separator.isSeparator(choice))
+      return choice;
+    if (typeof choice === "string") {
+      return {
+        value: choice,
+        name: choice,
+        short: choice,
+        disabled: false
+      };
+    }
+    const name = choice.name ?? String(choice.value);
+    return {
+      value: choice.value,
+      name,
+      description: choice.description,
+      short: choice.short ?? name,
+      disabled: choice.disabled ?? false
+    };
+  });
+}
+var import_yoctocolors_cjs6, searchTheme, esm_default10;
+var init_esm11 = __esm({
+  "../../node_modules/@inquirer/search/dist/esm/index.js"() {
+    init_esm2();
+    import_yoctocolors_cjs6 = __toESM(require_yoctocolors_cjs(), 1);
+    init_esm();
+    init_esm2();
+    searchTheme = {
+      icon: { cursor: esm_default.pointer },
+      style: {
+        disabled: (text) => import_yoctocolors_cjs6.default.dim(`- ${text}`),
+        searchTerm: (text) => import_yoctocolors_cjs6.default.cyan(text),
+        description: (text) => import_yoctocolors_cjs6.default.cyan(text)
+      },
+      helpMode: "auto"
+    };
+    esm_default10 = createPrompt((config, done) => {
+      const { pageSize = 7, validate = () => true } = config;
+      const theme = makeTheme(searchTheme, config.theme);
+      const firstRender = useRef(true);
+      const [status, setStatus] = useState("loading");
+      const [searchTerm, setSearchTerm] = useState("");
+      const [searchResults, setSearchResults] = useState([]);
+      const [searchError, setSearchError] = useState();
+      const prefix = usePrefix({ status, theme });
+      const bounds = useMemo(() => {
+        const first = searchResults.findIndex(isSelectable2);
+        const last = searchResults.findLastIndex(isSelectable2);
+        return { first, last };
+      }, [searchResults]);
+      const [active = bounds.first, setActive] = useState();
+      useEffect(() => {
+        const controller = new AbortController();
+        setStatus("loading");
+        setSearchError(void 0);
+        const fetchResults = async () => {
+          try {
+            const results = await config.source(searchTerm || void 0, {
+              signal: controller.signal
+            });
+            if (!controller.signal.aborted) {
+              setActive(void 0);
+              setSearchError(void 0);
+              setSearchResults(normalizeChoices4(results));
+              setStatus("idle");
+            }
+          } catch (error2) {
+            if (!controller.signal.aborted && error2 instanceof Error) {
+              setSearchError(error2.message);
+            }
+          }
+        };
+        void fetchResults();
+        return () => {
+          controller.abort();
+        };
+      }, [searchTerm]);
+      const selectedChoice = searchResults[active];
+      useKeypress(async (key, rl) => {
+        if (isEnterKey(key)) {
+          if (selectedChoice) {
+            setStatus("loading");
+            const isValid = await validate(selectedChoice.value);
+            setStatus("idle");
+            if (isValid === true) {
+              setStatus("done");
+              done(selectedChoice.value);
+            } else if (selectedChoice.name === searchTerm) {
+              setSearchError(isValid || "You must provide a valid value");
+            } else {
+              rl.write(selectedChoice.name);
+              setSearchTerm(selectedChoice.name);
+            }
+          } else {
+            rl.write(searchTerm);
+          }
+        } else if (key.name === "tab" && selectedChoice) {
+          rl.clearLine(0);
+          rl.write(selectedChoice.name);
+          setSearchTerm(selectedChoice.name);
+        } else if (status !== "loading" && (key.name === "up" || key.name === "down")) {
+          rl.clearLine(0);
+          if (key.name === "up" && active !== bounds.first || key.name === "down" && active !== bounds.last) {
+            const offset = key.name === "up" ? -1 : 1;
+            let next = active;
+            do {
+              next = (next + offset + searchResults.length) % searchResults.length;
+            } while (!isSelectable2(searchResults[next]));
+            setActive(next);
+          }
+        } else {
+          setSearchTerm(rl.line);
+        }
+      });
+      const message = theme.style.message(config.message, status);
+      if (active > 0) {
+        firstRender.current = false;
+      }
+      let helpTip = "";
+      if (searchResults.length > 1 && (theme.helpMode === "always" || theme.helpMode === "auto" && firstRender.current)) {
+        helpTip = searchResults.length > pageSize ? `
+${theme.style.help("(Use arrow keys to reveal more choices)")}` : `
+${theme.style.help("(Use arrow keys)")}`;
+      }
+      const page = usePagination({
+        items: searchResults,
+        active,
+        renderItem({ item, isActive }) {
+          if (Separator.isSeparator(item)) {
+            return ` ${item.separator}`;
+          }
+          if (item.disabled) {
+            const disabledLabel = typeof item.disabled === "string" ? item.disabled : "(disabled)";
+            return theme.style.disabled(`${item.name} ${disabledLabel}`);
+          }
+          const color = isActive ? theme.style.highlight : (x) => x;
+          const cursor = isActive ? theme.icon.cursor : ` `;
+          return color(`${cursor} ${item.name}`);
+        },
+        pageSize,
+        loop: false
+      });
+      let error;
+      if (searchError) {
+        error = theme.style.error(searchError);
+      } else if (searchResults.length === 0 && searchTerm !== "" && status === "idle") {
+        error = theme.style.error("No results found");
+      }
+      let searchStr;
+      if (status === "done" && selectedChoice) {
+        const answer = selectedChoice.short;
+        return `${prefix} ${message} ${theme.style.answer(answer)}`;
+      } else {
+        searchStr = theme.style.searchTerm(searchTerm);
+      }
+      const choiceDescription = selectedChoice?.description ? `
+${theme.style.description(selectedChoice.description)}` : ``;
+      return [
+        [prefix, message, searchStr].filter(Boolean).join(" "),
+        `${error ?? page}${helpTip}${choiceDescription}`
+      ];
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/select/dist/esm/index.js
+function isSelectable3(item) {
+  return !Separator.isSeparator(item) && !item.disabled;
+}
+function normalizeChoices5(choices) {
+  return choices.map((choice) => {
+    if (Separator.isSeparator(choice))
+      return choice;
+    if (typeof choice === "string") {
+      return {
+        value: choice,
+        name: choice,
+        short: choice,
+        disabled: false
+      };
+    }
+    const name = choice.name ?? String(choice.value);
+    return {
+      value: choice.value,
+      name,
+      description: choice.description,
+      short: choice.short ?? name,
+      disabled: choice.disabled ?? false
+    };
+  });
+}
+var import_yoctocolors_cjs7, import_ansi_escapes4, selectTheme, esm_default11;
+var init_esm12 = __esm({
+  "../../node_modules/@inquirer/select/dist/esm/index.js"() {
+    init_esm2();
+    import_yoctocolors_cjs7 = __toESM(require_yoctocolors_cjs(), 1);
+    init_esm();
+    import_ansi_escapes4 = __toESM(require_ansi_escapes(), 1);
+    init_esm2();
+    selectTheme = {
+      icon: { cursor: esm_default.pointer },
+      style: {
+        disabled: (text) => import_yoctocolors_cjs7.default.dim(`- ${text}`),
+        description: (text) => import_yoctocolors_cjs7.default.cyan(text)
+      },
+      helpMode: "auto"
+    };
+    esm_default11 = createPrompt((config, done) => {
+      const { loop = true, pageSize = 7 } = config;
+      const firstRender = useRef(true);
+      const theme = makeTheme(selectTheme, config.theme);
+      const [status, setStatus] = useState("idle");
+      const prefix = usePrefix({ status, theme });
+      const searchTimeoutRef = useRef();
+      const items = useMemo(() => normalizeChoices5(config.choices), [config.choices]);
+      const bounds = useMemo(() => {
+        const first = items.findIndex(isSelectable3);
+        const last = items.findLastIndex(isSelectable3);
+        if (first === -1) {
+          throw new ValidationError("[select prompt] No selectable choices. All choices are disabled.");
+        }
+        return { first, last };
+      }, [items]);
+      const defaultItemIndex = useMemo(() => {
+        if (!("default" in config))
+          return -1;
+        return items.findIndex((item) => isSelectable3(item) && item.value === config.default);
+      }, [config.default, items]);
+      const [active, setActive] = useState(defaultItemIndex === -1 ? bounds.first : defaultItemIndex);
+      const selectedChoice = items[active];
+      useKeypress((key, rl) => {
+        clearTimeout(searchTimeoutRef.current);
+        if (isEnterKey(key)) {
+          setStatus("done");
+          done(selectedChoice.value);
+        } else if (isUpKey(key) || isDownKey(key)) {
+          rl.clearLine(0);
+          if (loop || isUpKey(key) && active !== bounds.first || isDownKey(key) && active !== bounds.last) {
+            const offset = isUpKey(key) ? -1 : 1;
+            let next = active;
+            do {
+              next = (next + offset + items.length) % items.length;
+            } while (!isSelectable3(items[next]));
+            setActive(next);
+          }
+        } else if (isNumberKey(key)) {
+          rl.clearLine(0);
+          const position = Number(key.name) - 1;
+          const item = items[position];
+          if (item != null && isSelectable3(item)) {
+            setActive(position);
+          }
+        } else if (isBackspaceKey(key)) {
+          rl.clearLine(0);
+        } else {
+          const searchTerm = rl.line.toLowerCase();
+          const matchIndex = items.findIndex((item) => {
+            if (Separator.isSeparator(item) || !isSelectable3(item))
+              return false;
+            return item.name.toLowerCase().startsWith(searchTerm);
+          });
+          if (matchIndex !== -1) {
+            setActive(matchIndex);
+          }
+          searchTimeoutRef.current = setTimeout(() => {
+            rl.clearLine(0);
+          }, 700);
+        }
+      });
+      useEffect(() => () => {
+        clearTimeout(searchTimeoutRef.current);
+      }, []);
+      const message = theme.style.message(config.message, status);
+      let helpTipTop = "";
+      let helpTipBottom = "";
+      if (theme.helpMode === "always" || theme.helpMode === "auto" && firstRender.current) {
+        firstRender.current = false;
+        if (items.length > pageSize) {
+          helpTipBottom = `
+${theme.style.help("(Use arrow keys to reveal more choices)")}`;
+        } else {
+          helpTipTop = theme.style.help("(Use arrow keys)");
+        }
+      }
+      const page = usePagination({
+        items,
+        active,
+        renderItem({ item, isActive }) {
+          if (Separator.isSeparator(item)) {
+            return ` ${item.separator}`;
+          }
+          if (item.disabled) {
+            const disabledLabel = typeof item.disabled === "string" ? item.disabled : "(disabled)";
+            return theme.style.disabled(`${item.name} ${disabledLabel}`);
+          }
+          const color = isActive ? theme.style.highlight : (x) => x;
+          const cursor = isActive ? theme.icon.cursor : ` `;
+          return color(`${cursor} ${item.name}`);
+        },
+        pageSize,
+        loop
+      });
+      if (status === "done") {
+        return `${prefix} ${message} ${theme.style.answer(selectedChoice.short)}`;
+      }
+      const choiceDescription = selectedChoice.description ? `
+${theme.style.description(selectedChoice.description)}` : ``;
+      return `${[prefix, message, helpTipTop].filter(Boolean).join(" ")}
+${page}${helpTipBottom}${choiceDescription}${import_ansi_escapes4.default.cursorHide}`;
+    });
+  }
+});
+
+// ../../node_modules/@inquirer/prompts/dist/esm/index.js
+var init_esm13 = __esm({
+  "../../node_modules/@inquirer/prompts/dist/esm/index.js"() {
+    init_esm3();
+    init_esm4();
+    init_esm5();
+    init_esm6();
+    init_esm7();
+    init_esm8();
+    init_esm9();
+    init_esm10();
+    init_esm11();
+    init_esm12();
+  }
+});
+
+// src/entities.ts
+var init_entities = __esm({
+  "src/entities.ts"() {
+    "use strict";
+  }
+});
+
+// ../../shared/common/dist/common.js
+function compareIgnoreCase(str1, str2) {
+  if (!str1 || !str2)
+    return false;
+  return str1.localeCompare(str2, void 0, { sensitivity: "base" }) === 0;
+}
+function getDateIgnoreTimezone(dateString) {
+  if (!dateString) {
+    throw new Error("Date string is undefined");
+  }
+  const timezoneIdx = dateString.lastIndexOf("+");
+  dateString = timezoneIdx === -1 ? dateString : dateString.substring(0, timezoneIdx);
+  return new Date(dateString);
+}
+function handleErrorUnknown(ex) {
+  if (ex instanceof Error) {
+    return ex;
+  } else if (typeof ex === "string") {
+    return new Error(ex);
+  }
+  return new Error(`An error with info: "${String(ex ?? "Unknown")}"`);
+}
+var init_common = __esm({
+  "../../shared/common/dist/common.js"() {
+    "use strict";
+  }
+});
+
+// src/onedrive-name-date-fixer.ts
+import { promises as fs2 } from "fs";
+import { extname, join as join3, resolve } from "path";
+import { exiftool } from "exiftool-vendored";
+var logger2, supportedExtensions, IPHONE_MAKE, OneDriveNameDateFixer;
+var init_onedrive_name_date_fixer = __esm({
+  async "src/onedrive-name-date-fixer.ts"() {
+    "use strict";
+    await init_logger();
+    init_entities();
+    init_common();
+    logger2 = getLogger("name-date-fixer");
+    supportedExtensions = [".heic", ".jpg", ".jpeg", ".png", ".mp4", ".mov"];
+    IPHONE_MAKE = "apple";
+    ((OneDriveNameDateFixer2) => {
+      async function scan(folderPath, progressCallback) {
+        try {
+          logger2.info('Scan for media files to fix in "%s"', resolve(folderPath));
+          const mediaFiles = await iterateFolderDeep(folderPath, progressCallback);
+          logger2.info('Scan complete, found "%d" media files', mediaFiles.length);
+          return mediaFiles;
+        } catch (error) {
+          const err = handleErrorUnknown(error);
+          throw new Error(`Error scanning folder "${folderPath}": ${err.message}`, { cause: err });
+        } finally {
+          try {
+            logger2.info("Closing exiftool process");
+            await exiftool.closeChildProcesses();
+          } catch (error) {
+            logger2.error(error, "Error closing exiftool process");
+          }
+        }
+      }
+      OneDriveNameDateFixer2.scan = scan;
+      async function fix(files, dryRun, progressCallback) {
+        try {
+          files = files.filter((file) => file.status === "UPDATE_REQUIRED" /* UpdateRequired */ && file.newName);
+          logger2.info("Fix media file names for %d files", files.length);
+          let index = 0;
+          for (const file of files) {
+            try {
+              await renameFile(file, dryRun);
+            } catch (error) {
+              logger2.error(error, 'Error updating file name "%s"', file.file.name);
+            }
+            progressCallback(++index, files.length, file);
+          }
+        } catch (error) {
+          logger2.fatal(error, "Error updating file names");
+        }
+      }
+      OneDriveNameDateFixer2.fix = fix;
+      async function iterateFolderDeep(folderPath, progressCallback) {
+        let mediaFiles = [];
+        const dirFiles = await fs2.readdir(folderPath, { withFileTypes: true });
+        for (const file of dirFiles) {
+          const filePath = join3(folderPath, file.name);
+          if (file.isDirectory()) {
+            logger2.info('Processing folder "%s"', file.name);
+            mediaFiles = mediaFiles.concat(await iterateFolderDeep(filePath, progressCallback));
+          } else if (supportedExtensions.includes(extname(file.name).toLowerCase())) {
+            mediaFiles.push(await processFile(file));
+          }
+        }
+        progressCallback(folderPath, mediaFiles);
+        return mediaFiles;
+      }
+      async function processFile(file) {
+        logger2.debug('Processing file "%s"', file.name);
+        const filePath = join3(file.parentPath, file.name);
+        try {
+          const metadata = await exiftool.read(filePath);
+          const isIphone = compareIgnoreCase(IPHONE_MAKE, metadata.Make);
+          if (!isIphone) {
+            return { file, status: "SKIPPED_NOT_IPHONE" /* SkippedNotIPhone */ };
+          }
+          if (!metadata.CreateDate) {
+            return { file, status: "SKIPPED_DATE_UNKNOWN" /* SkippedDateUnknown */ };
+          }
+          const fileNameCreationDate = parseDateFromFileName(filePath);
+          if (!fileNameCreationDate) {
+            return { file, status: "SKIPPED_DATE_UNKNOWN" /* SkippedDateUnknown */ };
+          }
+          const fileCreationDate = getDateIgnoreTimezone(metadata.CreateDate.toString());
+          if (fileNameCreationDate.getTime() === fileCreationDate.getTime()) {
+            return { file, status: "NO_UPDATE_REQUIRED" /* NoUpdateRequired */ };
+          }
+          return {
+            file,
+            status: "UPDATE_REQUIRED" /* UpdateRequired */,
+            newName: getNewFilename(file, fileCreationDate)
+          };
+        } catch (error) {
+          console.error([error, filePath], "Error processing file %s", file.name);
+          return { file, status: "ERROR" /* Error */, error };
+        }
+      }
+      function parseDateFromFileName(filePath) {
+        const regex = /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/;
+        const match = regex.exec(filePath);
+        if (match) {
+          const [, year, month, day, hour, minute, second] = match;
+          return /* @__PURE__ */ new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
+        }
+        return null;
+      }
+      function getNewFilename(file, date) {
+        const yyyy = date.getFullYear();
+        const MM = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        const hh = String(date.getHours()).padStart(2, "0");
+        const mm = String(date.getMinutes()).padStart(2, "0");
+        const ss = String(date.getSeconds()).padStart(2, "0");
+        const formattedDate = `${yyyy}${MM}${dd}_${hh}${mm}${ss}`;
+        const filenameSuffix = file.name.substring(formattedDate.length);
+        return `${formattedDate}${filenameSuffix}`;
+      }
+      async function renameFile(file, dryRun) {
+        try {
+          if (file.status !== "UPDATE_REQUIRED" /* UpdateRequired */) {
+            throw new Error(`Media file object "${file.file.name}" invalid status for update: "${file.status}"`);
+          }
+          if (file.newName === void 0) {
+            throw new Error(`Invalid media file object "${file.file.name}" for update, new name is undefined`);
+          }
+          if (dryRun) {
+            logger2.warn('Renaming in dry-run mode: "%s" --> "%s"', file.file.name, file.newName);
+            file.status = "UPDATE_COMPLETE" /* UpdateComplete */;
+            return;
+          }
+          logger2.trace([file.file.name, file.newName], "Updating file name");
+          await fs2.rename(join3(file.file.parentPath, file.file.name), join3(file.file.parentPath, file.newName));
+          file.status = "UPDATE_COMPLETE" /* UpdateComplete */;
+          logger2.info('File renamed: "%s" --> "%s"', file.file.name, file.newName);
+        } catch (error) {
+          logger2.error(error, 'Error renaming file "%s"', file.file.name);
+          file.error = error;
+        }
+      }
+    })(OneDriveNameDateFixer || (OneDriveNameDateFixer = {}));
+  }
+});
+
 // ../../node_modules/libheif-js/libheif-wasm/libheif-bundle.js
 var require_libheif_bundle = __commonJS({
   "../../node_modules/libheif-js/libheif-wasm/libheif-bundle.js"(exports, module) {
@@ -14637,7 +17327,7 @@ var require_encoder = __commonJS({
         initQuantTables(sf);
         currentQuality = quality2;
       }
-      function init2() {
+      function init() {
         var time_start = (/* @__PURE__ */ new Date()).getTime();
         if (!quality) quality = 50;
         initCharLookupTable();
@@ -14647,7 +17337,7 @@ var require_encoder = __commonJS({
         setQuality(quality);
         var duration = (/* @__PURE__ */ new Date()).getTime() - time_start;
       }
-      init2();
+      init();
     }
     ;
     if (typeof module !== "undefined") {
@@ -17912,2359 +20602,98 @@ var require_heic_convert = __commonJS({
   }
 });
 
-// ../../shared/common/dist/logger.js
-import fs from "fs";
-import path from "path";
-import pino from "pino";
-var logLevel = process.env["LOG_LEVEL"] || "debug";
-var pinoLogger = pino.default({
-  level: logLevel,
-  // default log level
-  transport: {
-    targets: [
-      {
-        target: "pino-pretty",
-        // log nice string to console
-        level: "debug",
-        options: {
-          sync: true,
-          colorize: true,
-          messageFormat: "[{name}] {msg}",
-          destination: 1,
-          ignore: "hostname,name"
-        }
-      },
-      {
-        target: "pino/file",
-        // log json to file
-        level: "info",
-        options: { destination: "./logs/info.log" }
-      },
-      {
-        target: "pino/file",
-        // log errors to file
-        level: "error",
-        options: { destination: "./logs/error.log" }
-      }
-      //   { // file with rolling functionality
-      //     target: 'pino-roll',
-      //     options: { file: '.logs/info.log', frequency: 'daily', mkdir: true }
-      //   }
-    ]
-  }
-});
-var ProxyLogger = class {
-  /** Actual pino logger to proxy all logs to */
-  pinoLogger;
-  constructor(logger5) {
-    this.pinoLogger = logger5;
-  }
-  info = (arg1, arg2, ...args) => {
-    this.pinoLogger.info(arg1, arg2, ...args);
-  };
-  error = (arg1, arg2, ...args) => {
-    this.pinoLogger.error(arg1, arg2, ...args);
-  };
-  debug = (arg1, arg2, ...args) => {
-    this.pinoLogger.debug(arg1, arg2, ...args);
-  };
-  warn = (arg1, arg2, ...args) => {
-    this.pinoLogger.warn(arg1, arg2, ...args);
-  };
-  trace = (arg1, arg2, ...args) => {
-    this.pinoLogger.trace(arg1, arg2, ...args);
-  };
-  fatal = (arg1, arg2, ...args) => {
-    this.pinoLogger.fatal(arg1, arg2, ...args);
-  };
-};
-var logger = new ProxyLogger(pinoLogger);
-function init() {
-  const cwd = process.cwd();
-  const logDir = path.join(cwd, "logs");
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-  }
-}
-init();
-function getLogger(name) {
-  return new ProxyLogger(pinoLogger.child({ name }, {}));
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/key.js
-var isUpKey = (key) => (
-  // The up key
-  key.name === "up" || // Vim keybinding
-  key.name === "k" || // Emacs keybinding
-  key.ctrl && key.name === "p"
-);
-var isDownKey = (key) => (
-  // The down key
-  key.name === "down" || // Vim keybinding
-  key.name === "j" || // Emacs keybinding
-  key.ctrl && key.name === "n"
-);
-var isSpaceKey = (key) => key.name === "space";
-var isBackspaceKey = (key) => key.name === "backspace";
-var isNumberKey = (key) => "123456789".includes(key.name);
-var isEnterKey = (key) => key.name === "enter" || key.name === "return";
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/errors.js
-var AbortPromptError = class extends Error {
-  name = "AbortPromptError";
-  message = "Prompt was aborted";
-  constructor(options) {
-    super();
-    this.cause = options?.cause;
-  }
-};
-var CancelPromptError = class extends Error {
-  name = "CancelPromptError";
-  message = "Prompt was canceled";
-};
-var ExitPromptError = class extends Error {
-  name = "ExitPromptError";
-};
-var HookError = class extends Error {
-  name = "HookError";
-};
-var ValidationError = class extends Error {
-  name = "ValidationError";
-};
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/hook-engine.js
-import { AsyncLocalStorage, AsyncResource } from "node:async_hooks";
-var hookStorage = new AsyncLocalStorage();
-function createStore(rl) {
-  const store = {
-    rl,
-    hooks: [],
-    hooksCleanup: [],
-    hooksEffect: [],
-    index: 0,
-    handleChange() {
-    }
-  };
-  return store;
-}
-function withHooks(rl, cb) {
-  const store = createStore(rl);
-  return hookStorage.run(store, () => {
-    function cycle(render) {
-      store.handleChange = () => {
-        store.index = 0;
-        render();
-      };
-      store.handleChange();
-    }
-    return cb(cycle);
-  });
-}
-function getStore() {
-  const store = hookStorage.getStore();
-  if (!store) {
-    throw new HookError("[Inquirer] Hook functions can only be called from within a prompt");
-  }
-  return store;
-}
-function readline() {
-  return getStore().rl;
-}
-function withUpdates(fn) {
-  const wrapped = (...args) => {
-    const store = getStore();
-    let shouldUpdate = false;
-    const oldHandleChange = store.handleChange;
-    store.handleChange = () => {
-      shouldUpdate = true;
-    };
-    const returnValue = fn(...args);
-    if (shouldUpdate) {
-      oldHandleChange();
-    }
-    store.handleChange = oldHandleChange;
-    return returnValue;
-  };
-  return AsyncResource.bind(wrapped);
-}
-function withPointer(cb) {
-  const store = getStore();
-  const { index } = store;
-  const pointer = {
-    get() {
-      return store.hooks[index];
-    },
-    set(value) {
-      store.hooks[index] = value;
-    },
-    initialized: index in store.hooks
-  };
-  const returnValue = cb(pointer);
-  store.index++;
-  return returnValue;
-}
-function handleChange() {
-  getStore().handleChange();
-}
-var effectScheduler = {
-  queue(cb) {
-    const store = getStore();
-    const { index } = store;
-    store.hooksEffect.push(() => {
-      store.hooksCleanup[index]?.();
-      const cleanFn = cb(readline());
-      if (cleanFn != null && typeof cleanFn !== "function") {
-        throw new ValidationError("useEffect return value must be a cleanup function or nothing.");
-      }
-      store.hooksCleanup[index] = cleanFn;
-    });
-  },
-  run() {
-    const store = getStore();
-    withUpdates(() => {
-      store.hooksEffect.forEach((effect) => {
-        effect();
-      });
-      store.hooksEffect.length = 0;
-    })();
-  },
-  clearAll() {
-    const store = getStore();
-    store.hooksCleanup.forEach((cleanFn) => {
-      cleanFn?.();
-    });
-    store.hooksEffect.length = 0;
-    store.hooksCleanup.length = 0;
-  }
-};
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/use-state.js
-function useState(defaultValue) {
-  return withPointer((pointer) => {
-    const setFn = (newValue) => {
-      if (pointer.get() !== newValue) {
-        pointer.set(newValue);
-        handleChange();
-      }
-    };
-    if (pointer.initialized) {
-      return [pointer.get(), setFn];
-    }
-    const value = typeof defaultValue === "function" ? defaultValue() : defaultValue;
-    pointer.set(value);
-    return [value, setFn];
-  });
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/use-effect.js
-function useEffect(cb, depArray) {
-  withPointer((pointer) => {
-    const oldDeps = pointer.get();
-    const hasChanged = !Array.isArray(oldDeps) || depArray.some((dep, i) => !Object.is(dep, oldDeps[i]));
-    if (hasChanged) {
-      effectScheduler.queue(cb);
-    }
-    pointer.set(depArray);
-  });
-}
-
-// ../../node_modules/@inquirer/figures/dist/esm/index.js
-import process2 from "node:process";
-function isUnicodeSupported() {
-  if (process2.platform !== "win32") {
-    return process2.env["TERM"] !== "linux";
-  }
-  return Boolean(process2.env["WT_SESSION"]) || // Windows Terminal
-  Boolean(process2.env["TERMINUS_SUBLIME"]) || // Terminus (<0.2.27)
-  process2.env["ConEmuTask"] === "{cmd::Cmder}" || // ConEmu and cmder
-  process2.env["TERM_PROGRAM"] === "Terminus-Sublime" || process2.env["TERM_PROGRAM"] === "vscode" || process2.env["TERM"] === "xterm-256color" || process2.env["TERM"] === "alacritty" || process2.env["TERMINAL_EMULATOR"] === "JetBrains-JediTerm";
-}
-var common = {
-  circleQuestionMark: "(?)",
-  questionMarkPrefix: "(?)",
-  square: "\u2588",
-  squareDarkShade: "\u2593",
-  squareMediumShade: "\u2592",
-  squareLightShade: "\u2591",
-  squareTop: "\u2580",
-  squareBottom: "\u2584",
-  squareLeft: "\u258C",
-  squareRight: "\u2590",
-  squareCenter: "\u25A0",
-  bullet: "\u25CF",
-  dot: "\u2024",
-  ellipsis: "\u2026",
-  pointerSmall: "\u203A",
-  triangleUp: "\u25B2",
-  triangleUpSmall: "\u25B4",
-  triangleDown: "\u25BC",
-  triangleDownSmall: "\u25BE",
-  triangleLeftSmall: "\u25C2",
-  triangleRightSmall: "\u25B8",
-  home: "\u2302",
-  heart: "\u2665",
-  musicNote: "\u266A",
-  musicNoteBeamed: "\u266B",
-  arrowUp: "\u2191",
-  arrowDown: "\u2193",
-  arrowLeft: "\u2190",
-  arrowRight: "\u2192",
-  arrowLeftRight: "\u2194",
-  arrowUpDown: "\u2195",
-  almostEqual: "\u2248",
-  notEqual: "\u2260",
-  lessOrEqual: "\u2264",
-  greaterOrEqual: "\u2265",
-  identical: "\u2261",
-  infinity: "\u221E",
-  subscriptZero: "\u2080",
-  subscriptOne: "\u2081",
-  subscriptTwo: "\u2082",
-  subscriptThree: "\u2083",
-  subscriptFour: "\u2084",
-  subscriptFive: "\u2085",
-  subscriptSix: "\u2086",
-  subscriptSeven: "\u2087",
-  subscriptEight: "\u2088",
-  subscriptNine: "\u2089",
-  oneHalf: "\xBD",
-  oneThird: "\u2153",
-  oneQuarter: "\xBC",
-  oneFifth: "\u2155",
-  oneSixth: "\u2159",
-  oneEighth: "\u215B",
-  twoThirds: "\u2154",
-  twoFifths: "\u2156",
-  threeQuarters: "\xBE",
-  threeFifths: "\u2157",
-  threeEighths: "\u215C",
-  fourFifths: "\u2158",
-  fiveSixths: "\u215A",
-  fiveEighths: "\u215D",
-  sevenEighths: "\u215E",
-  line: "\u2500",
-  lineBold: "\u2501",
-  lineDouble: "\u2550",
-  lineDashed0: "\u2504",
-  lineDashed1: "\u2505",
-  lineDashed2: "\u2508",
-  lineDashed3: "\u2509",
-  lineDashed4: "\u254C",
-  lineDashed5: "\u254D",
-  lineDashed6: "\u2574",
-  lineDashed7: "\u2576",
-  lineDashed8: "\u2578",
-  lineDashed9: "\u257A",
-  lineDashed10: "\u257C",
-  lineDashed11: "\u257E",
-  lineDashed12: "\u2212",
-  lineDashed13: "\u2013",
-  lineDashed14: "\u2010",
-  lineDashed15: "\u2043",
-  lineVertical: "\u2502",
-  lineVerticalBold: "\u2503",
-  lineVerticalDouble: "\u2551",
-  lineVerticalDashed0: "\u2506",
-  lineVerticalDashed1: "\u2507",
-  lineVerticalDashed2: "\u250A",
-  lineVerticalDashed3: "\u250B",
-  lineVerticalDashed4: "\u254E",
-  lineVerticalDashed5: "\u254F",
-  lineVerticalDashed6: "\u2575",
-  lineVerticalDashed7: "\u2577",
-  lineVerticalDashed8: "\u2579",
-  lineVerticalDashed9: "\u257B",
-  lineVerticalDashed10: "\u257D",
-  lineVerticalDashed11: "\u257F",
-  lineDownLeft: "\u2510",
-  lineDownLeftArc: "\u256E",
-  lineDownBoldLeftBold: "\u2513",
-  lineDownBoldLeft: "\u2512",
-  lineDownLeftBold: "\u2511",
-  lineDownDoubleLeftDouble: "\u2557",
-  lineDownDoubleLeft: "\u2556",
-  lineDownLeftDouble: "\u2555",
-  lineDownRight: "\u250C",
-  lineDownRightArc: "\u256D",
-  lineDownBoldRightBold: "\u250F",
-  lineDownBoldRight: "\u250E",
-  lineDownRightBold: "\u250D",
-  lineDownDoubleRightDouble: "\u2554",
-  lineDownDoubleRight: "\u2553",
-  lineDownRightDouble: "\u2552",
-  lineUpLeft: "\u2518",
-  lineUpLeftArc: "\u256F",
-  lineUpBoldLeftBold: "\u251B",
-  lineUpBoldLeft: "\u251A",
-  lineUpLeftBold: "\u2519",
-  lineUpDoubleLeftDouble: "\u255D",
-  lineUpDoubleLeft: "\u255C",
-  lineUpLeftDouble: "\u255B",
-  lineUpRight: "\u2514",
-  lineUpRightArc: "\u2570",
-  lineUpBoldRightBold: "\u2517",
-  lineUpBoldRight: "\u2516",
-  lineUpRightBold: "\u2515",
-  lineUpDoubleRightDouble: "\u255A",
-  lineUpDoubleRight: "\u2559",
-  lineUpRightDouble: "\u2558",
-  lineUpDownLeft: "\u2524",
-  lineUpBoldDownBoldLeftBold: "\u252B",
-  lineUpBoldDownBoldLeft: "\u2528",
-  lineUpDownLeftBold: "\u2525",
-  lineUpBoldDownLeftBold: "\u2529",
-  lineUpDownBoldLeftBold: "\u252A",
-  lineUpDownBoldLeft: "\u2527",
-  lineUpBoldDownLeft: "\u2526",
-  lineUpDoubleDownDoubleLeftDouble: "\u2563",
-  lineUpDoubleDownDoubleLeft: "\u2562",
-  lineUpDownLeftDouble: "\u2561",
-  lineUpDownRight: "\u251C",
-  lineUpBoldDownBoldRightBold: "\u2523",
-  lineUpBoldDownBoldRight: "\u2520",
-  lineUpDownRightBold: "\u251D",
-  lineUpBoldDownRightBold: "\u2521",
-  lineUpDownBoldRightBold: "\u2522",
-  lineUpDownBoldRight: "\u251F",
-  lineUpBoldDownRight: "\u251E",
-  lineUpDoubleDownDoubleRightDouble: "\u2560",
-  lineUpDoubleDownDoubleRight: "\u255F",
-  lineUpDownRightDouble: "\u255E",
-  lineDownLeftRight: "\u252C",
-  lineDownBoldLeftBoldRightBold: "\u2533",
-  lineDownLeftBoldRightBold: "\u252F",
-  lineDownBoldLeftRight: "\u2530",
-  lineDownBoldLeftBoldRight: "\u2531",
-  lineDownBoldLeftRightBold: "\u2532",
-  lineDownLeftRightBold: "\u252E",
-  lineDownLeftBoldRight: "\u252D",
-  lineDownDoubleLeftDoubleRightDouble: "\u2566",
-  lineDownDoubleLeftRight: "\u2565",
-  lineDownLeftDoubleRightDouble: "\u2564",
-  lineUpLeftRight: "\u2534",
-  lineUpBoldLeftBoldRightBold: "\u253B",
-  lineUpLeftBoldRightBold: "\u2537",
-  lineUpBoldLeftRight: "\u2538",
-  lineUpBoldLeftBoldRight: "\u2539",
-  lineUpBoldLeftRightBold: "\u253A",
-  lineUpLeftRightBold: "\u2536",
-  lineUpLeftBoldRight: "\u2535",
-  lineUpDoubleLeftDoubleRightDouble: "\u2569",
-  lineUpDoubleLeftRight: "\u2568",
-  lineUpLeftDoubleRightDouble: "\u2567",
-  lineUpDownLeftRight: "\u253C",
-  lineUpBoldDownBoldLeftBoldRightBold: "\u254B",
-  lineUpDownBoldLeftBoldRightBold: "\u2548",
-  lineUpBoldDownLeftBoldRightBold: "\u2547",
-  lineUpBoldDownBoldLeftRightBold: "\u254A",
-  lineUpBoldDownBoldLeftBoldRight: "\u2549",
-  lineUpBoldDownLeftRight: "\u2540",
-  lineUpDownBoldLeftRight: "\u2541",
-  lineUpDownLeftBoldRight: "\u253D",
-  lineUpDownLeftRightBold: "\u253E",
-  lineUpBoldDownBoldLeftRight: "\u2542",
-  lineUpDownLeftBoldRightBold: "\u253F",
-  lineUpBoldDownLeftBoldRight: "\u2543",
-  lineUpBoldDownLeftRightBold: "\u2544",
-  lineUpDownBoldLeftBoldRight: "\u2545",
-  lineUpDownBoldLeftRightBold: "\u2546",
-  lineUpDoubleDownDoubleLeftDoubleRightDouble: "\u256C",
-  lineUpDoubleDownDoubleLeftRight: "\u256B",
-  lineUpDownLeftDoubleRightDouble: "\u256A",
-  lineCross: "\u2573",
-  lineBackslash: "\u2572",
-  lineSlash: "\u2571"
-};
-var specialMainSymbols = {
-  tick: "\u2714",
-  info: "\u2139",
-  warning: "\u26A0",
-  cross: "\u2718",
-  squareSmall: "\u25FB",
-  squareSmallFilled: "\u25FC",
-  circle: "\u25EF",
-  circleFilled: "\u25C9",
-  circleDotted: "\u25CC",
-  circleDouble: "\u25CE",
-  circleCircle: "\u24DE",
-  circleCross: "\u24E7",
-  circlePipe: "\u24BE",
-  radioOn: "\u25C9",
-  radioOff: "\u25EF",
-  checkboxOn: "\u2612",
-  checkboxOff: "\u2610",
-  checkboxCircleOn: "\u24E7",
-  checkboxCircleOff: "\u24BE",
-  pointer: "\u276F",
-  triangleUpOutline: "\u25B3",
-  triangleLeft: "\u25C0",
-  triangleRight: "\u25B6",
-  lozenge: "\u25C6",
-  lozengeOutline: "\u25C7",
-  hamburger: "\u2630",
-  smiley: "\u32E1",
-  mustache: "\u0DF4",
-  star: "\u2605",
-  play: "\u25B6",
-  nodejs: "\u2B22",
-  oneSeventh: "\u2150",
-  oneNinth: "\u2151",
-  oneTenth: "\u2152"
-};
-var specialFallbackSymbols = {
-  tick: "\u221A",
-  info: "i",
-  warning: "\u203C",
-  cross: "\xD7",
-  squareSmall: "\u25A1",
-  squareSmallFilled: "\u25A0",
-  circle: "( )",
-  circleFilled: "(*)",
-  circleDotted: "( )",
-  circleDouble: "( )",
-  circleCircle: "(\u25CB)",
-  circleCross: "(\xD7)",
-  circlePipe: "(\u2502)",
-  radioOn: "(*)",
-  radioOff: "( )",
-  checkboxOn: "[\xD7]",
-  checkboxOff: "[ ]",
-  checkboxCircleOn: "(\xD7)",
-  checkboxCircleOff: "( )",
-  pointer: ">",
-  triangleUpOutline: "\u2206",
-  triangleLeft: "\u25C4",
-  triangleRight: "\u25BA",
-  lozenge: "\u2666",
-  lozengeOutline: "\u25CA",
-  hamburger: "\u2261",
-  smiley: "\u263A",
-  mustache: "\u250C\u2500\u2510",
-  star: "\u2736",
-  play: "\u25BA",
-  nodejs: "\u2666",
-  oneSeventh: "1/7",
-  oneNinth: "1/9",
-  oneTenth: "1/10"
-};
-var mainSymbols = { ...common, ...specialMainSymbols };
-var fallbackSymbols = {
-  ...common,
-  ...specialFallbackSymbols
-};
-var shouldUseMain = isUnicodeSupported();
-var figures = shouldUseMain ? mainSymbols : fallbackSymbols;
-var esm_default = figures;
-var replacements = Object.entries(specialMainSymbols);
-var replaceSymbols = (string, { useFallback = !shouldUseMain } = {}) => {
-  if (useFallback) {
-    for (const [key, mainSymbol] of replacements) {
-      const fallbackSymbol = fallbackSymbols[key];
-      if (!fallbackSymbol) {
-        throw new Error(`Unable to find fallback for ${key}`);
-      }
-      string = string.replaceAll(mainSymbol, fallbackSymbol);
-    }
-  }
-  return string;
-};
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/theme.js
-var import_yoctocolors_cjs = __toESM(require_yoctocolors_cjs(), 1);
-var defaultTheme = {
-  prefix: {
-    idle: import_yoctocolors_cjs.default.blue("?"),
-    // TODO: use figure
-    done: import_yoctocolors_cjs.default.green(esm_default.tick)
-  },
-  spinner: {
-    interval: 80,
-    frames: ["\u280B", "\u2819", "\u2839", "\u2838", "\u283C", "\u2834", "\u2826", "\u2827", "\u2807", "\u280F"].map((frame) => import_yoctocolors_cjs.default.yellow(frame))
-  },
-  style: {
-    answer: import_yoctocolors_cjs.default.cyan,
-    message: import_yoctocolors_cjs.default.bold,
-    error: (text) => import_yoctocolors_cjs.default.red(`> ${text}`),
-    defaultAnswer: (text) => import_yoctocolors_cjs.default.dim(`(${text})`),
-    help: import_yoctocolors_cjs.default.dim,
-    highlight: import_yoctocolors_cjs.default.cyan,
-    key: (text) => import_yoctocolors_cjs.default.cyan(import_yoctocolors_cjs.default.bold(`<${text}>`))
-  }
-};
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/make-theme.js
-function isPlainObject(value) {
-  if (typeof value !== "object" || value === null)
-    return false;
-  let proto = value;
-  while (Object.getPrototypeOf(proto) !== null) {
-    proto = Object.getPrototypeOf(proto);
-  }
-  return Object.getPrototypeOf(value) === proto;
-}
-function deepMerge(...objects) {
-  const output = {};
-  for (const obj of objects) {
-    for (const [key, value] of Object.entries(obj)) {
-      const prevValue = output[key];
-      output[key] = isPlainObject(prevValue) && isPlainObject(value) ? deepMerge(prevValue, value) : value;
-    }
-  }
-  return output;
-}
-function makeTheme(...themes) {
-  const themesToMerge = [
-    defaultTheme,
-    ...themes.filter((theme) => theme != null)
-  ];
-  return deepMerge(...themesToMerge);
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/use-prefix.js
-import { AsyncResource as AsyncResource2 } from "node:async_hooks";
-function usePrefix({ status = "idle", theme }) {
-  const [showLoader, setShowLoader] = useState(false);
-  const [tick, setTick] = useState(0);
-  const { prefix, spinner } = makeTheme(theme);
-  useEffect(() => {
-    if (status === "loading") {
-      let tickInterval;
-      let inc = -1;
-      const delayTimeout = setTimeout(AsyncResource2.bind(() => {
-        setShowLoader(true);
-        tickInterval = setInterval(AsyncResource2.bind(() => {
-          inc = inc + 1;
-          setTick(inc % spinner.frames.length);
-        }), spinner.interval);
-      }), 300);
-      return () => {
-        clearTimeout(delayTimeout);
-        clearInterval(tickInterval);
-      };
-    } else {
-      setShowLoader(false);
-    }
-  }, [status]);
-  if (showLoader) {
-    return spinner.frames[tick];
-  }
-  const iconName = status === "loading" ? "idle" : status;
-  return typeof prefix === "string" ? prefix : prefix[iconName] ?? prefix["idle"];
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/use-memo.js
-function useMemo(fn, dependencies) {
-  return withPointer((pointer) => {
-    const prev = pointer.get();
-    if (!prev || prev.dependencies.length !== dependencies.length || prev.dependencies.some((dep, i) => dep !== dependencies[i])) {
-      const value = fn();
-      pointer.set({ value, dependencies });
-      return value;
-    }
-    return prev.value;
-  });
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/use-ref.js
-function useRef(val) {
-  return useState({ current: val })[0];
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/use-keypress.js
-function useKeypress(userHandler) {
-  const signal = useRef(userHandler);
-  signal.current = userHandler;
-  useEffect((rl) => {
-    let ignore = false;
-    const handler = withUpdates((_input, event) => {
-      if (ignore)
-        return;
-      void signal.current(event, rl);
-    });
-    rl.input.on("keypress", handler);
-    return () => {
-      ignore = true;
-      rl.input.removeListener("keypress", handler);
-    };
-  }, []);
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/utils.js
-var import_cli_width = __toESM(require_cli_width(), 1);
-var import_wrap_ansi = __toESM(require_wrap_ansi(), 1);
-function breakLines(content, width) {
-  return content.split("\n").flatMap((line) => (0, import_wrap_ansi.default)(line, width, { trim: false, hard: true }).split("\n").map((str) => str.trimEnd())).join("\n");
-}
-function readlineWidth() {
-  return (0, import_cli_width.default)({ defaultWidth: 80, output: readline().output });
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/pagination/lines.js
-function split(content, width) {
-  return breakLines(content, width).split("\n");
-}
-function rotate(count, items) {
-  const max = items.length;
-  const offset = (count % max + max) % max;
-  return [...items.slice(offset), ...items.slice(0, offset)];
-}
-function lines({ items, width, renderItem, active, position: requested, pageSize }) {
-  const layouts = items.map((item, index) => ({
-    item,
-    index,
-    isActive: index === active
-  }));
-  const layoutsInPage = rotate(active - requested, layouts).slice(0, pageSize);
-  const renderItemAt = (index) => layoutsInPage[index] == null ? [] : split(renderItem(layoutsInPage[index]), width);
-  const pageBuffer = Array.from({ length: pageSize });
-  const activeItem = renderItemAt(requested).slice(0, pageSize);
-  const position = requested + activeItem.length <= pageSize ? requested : pageSize - activeItem.length;
-  pageBuffer.splice(position, activeItem.length, ...activeItem);
-  let bufferPointer = position + activeItem.length;
-  let layoutPointer = requested + 1;
-  while (bufferPointer < pageSize && layoutPointer < layoutsInPage.length) {
-    for (const line of renderItemAt(layoutPointer)) {
-      pageBuffer[bufferPointer++] = line;
-      if (bufferPointer >= pageSize)
-        break;
-    }
-    layoutPointer++;
-  }
-  bufferPointer = position - 1;
-  layoutPointer = requested - 1;
-  while (bufferPointer >= 0 && layoutPointer >= 0) {
-    for (const line of renderItemAt(layoutPointer).reverse()) {
-      pageBuffer[bufferPointer--] = line;
-      if (bufferPointer < 0)
-        break;
-    }
-    layoutPointer--;
-  }
-  return pageBuffer.filter((line) => typeof line === "string");
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/pagination/position.js
-function finite({ active, pageSize, total }) {
-  const middle = Math.floor(pageSize / 2);
-  if (total <= pageSize || active < middle)
-    return active;
-  if (active >= total - middle)
-    return active + pageSize - total;
-  return middle;
-}
-function infinite({ active, lastActive, total, pageSize, pointer }) {
-  if (total <= pageSize)
-    return active;
-  if (lastActive < active && active - lastActive < pageSize) {
-    return Math.min(Math.floor(pageSize / 2), pointer + active - lastActive);
-  }
-  return pointer;
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/pagination/use-pagination.js
-function usePagination({ items, active, renderItem, pageSize, loop = true }) {
-  const state = useRef({ position: 0, lastActive: 0 });
-  const position = loop ? infinite({
-    active,
-    lastActive: state.current.lastActive,
-    total: items.length,
-    pageSize,
-    pointer: state.current.position
-  }) : finite({
-    active,
-    total: items.length,
-    pageSize
-  });
-  state.current.position = position;
-  state.current.lastActive = active;
-  return lines({
-    items,
-    width: readlineWidth(),
-    renderItem,
-    active,
-    position,
-    pageSize
-  }).join("\n");
-}
-
-// ../../node_modules/signal-exit/dist/mjs/signals.js
-var signals = [];
-signals.push("SIGHUP", "SIGINT", "SIGTERM");
-if (process.platform !== "win32") {
-  signals.push(
-    "SIGALRM",
-    "SIGABRT",
-    "SIGVTALRM",
-    "SIGXCPU",
-    "SIGXFSZ",
-    "SIGUSR2",
-    "SIGTRAP",
-    "SIGSYS",
-    "SIGQUIT",
-    "SIGIOT"
-    // should detect profiler and enable/disable accordingly.
-    // see #21
-    // 'SIGPROF'
-  );
-}
-if (process.platform === "linux") {
-  signals.push("SIGIO", "SIGPOLL", "SIGPWR", "SIGSTKFLT");
-}
-
-// ../../node_modules/signal-exit/dist/mjs/index.js
-var processOk = (process4) => !!process4 && typeof process4 === "object" && typeof process4.removeListener === "function" && typeof process4.emit === "function" && typeof process4.reallyExit === "function" && typeof process4.listeners === "function" && typeof process4.kill === "function" && typeof process4.pid === "number" && typeof process4.on === "function";
-var kExitEmitter = Symbol.for("signal-exit emitter");
-var global = globalThis;
-var ObjectDefineProperty = Object.defineProperty.bind(Object);
-var Emitter = class {
-  emitted = {
-    afterExit: false,
-    exit: false
-  };
-  listeners = {
-    afterExit: [],
-    exit: []
-  };
-  count = 0;
-  id = Math.random();
-  constructor() {
-    if (global[kExitEmitter]) {
-      return global[kExitEmitter];
-    }
-    ObjectDefineProperty(global, kExitEmitter, {
-      value: this,
-      writable: false,
-      enumerable: false,
-      configurable: false
-    });
-  }
-  on(ev, fn) {
-    this.listeners[ev].push(fn);
-  }
-  removeListener(ev, fn) {
-    const list = this.listeners[ev];
-    const i = list.indexOf(fn);
-    if (i === -1) {
-      return;
-    }
-    if (i === 0 && list.length === 1) {
-      list.length = 0;
-    } else {
-      list.splice(i, 1);
-    }
-  }
-  emit(ev, code, signal) {
-    if (this.emitted[ev]) {
-      return false;
-    }
-    this.emitted[ev] = true;
-    let ret = false;
-    for (const fn of this.listeners[ev]) {
-      ret = fn(code, signal) === true || ret;
-    }
-    if (ev === "exit") {
-      ret = this.emit("afterExit", code, signal) || ret;
-    }
-    return ret;
-  }
-};
-var SignalExitBase = class {
-};
-var signalExitWrap = (handler) => {
-  return {
-    onExit(cb, opts) {
-      return handler.onExit(cb, opts);
-    },
-    load() {
-      return handler.load();
-    },
-    unload() {
-      return handler.unload();
-    }
-  };
-};
-var SignalExitFallback = class extends SignalExitBase {
-  onExit() {
-    return () => {
-    };
-  }
-  load() {
-  }
-  unload() {
-  }
-};
-var SignalExit = class extends SignalExitBase {
-  // "SIGHUP" throws an `ENOSYS` error on Windows,
-  // so use a supported signal instead
-  /* c8 ignore start */
-  #hupSig = process3.platform === "win32" ? "SIGINT" : "SIGHUP";
-  /* c8 ignore stop */
-  #emitter = new Emitter();
-  #process;
-  #originalProcessEmit;
-  #originalProcessReallyExit;
-  #sigListeners = {};
-  #loaded = false;
-  constructor(process4) {
-    super();
-    this.#process = process4;
-    this.#sigListeners = {};
-    for (const sig of signals) {
-      this.#sigListeners[sig] = () => {
-        const listeners = this.#process.listeners(sig);
-        let { count } = this.#emitter;
-        const p = process4;
-        if (typeof p.__signal_exit_emitter__ === "object" && typeof p.__signal_exit_emitter__.count === "number") {
-          count += p.__signal_exit_emitter__.count;
-        }
-        if (listeners.length === count) {
-          this.unload();
-          const ret = this.#emitter.emit("exit", null, sig);
-          const s = sig === "SIGHUP" ? this.#hupSig : sig;
-          if (!ret)
-            process4.kill(process4.pid, s);
-        }
-      };
-    }
-    this.#originalProcessReallyExit = process4.reallyExit;
-    this.#originalProcessEmit = process4.emit;
-  }
-  onExit(cb, opts) {
-    if (!processOk(this.#process)) {
-      return () => {
-      };
-    }
-    if (this.#loaded === false) {
-      this.load();
-    }
-    const ev = opts?.alwaysLast ? "afterExit" : "exit";
-    this.#emitter.on(ev, cb);
-    return () => {
-      this.#emitter.removeListener(ev, cb);
-      if (this.#emitter.listeners["exit"].length === 0 && this.#emitter.listeners["afterExit"].length === 0) {
-        this.unload();
-      }
-    };
-  }
-  load() {
-    if (this.#loaded) {
-      return;
-    }
-    this.#loaded = true;
-    this.#emitter.count += 1;
-    for (const sig of signals) {
-      try {
-        const fn = this.#sigListeners[sig];
-        if (fn)
-          this.#process.on(sig, fn);
-      } catch (_) {
-      }
-    }
-    this.#process.emit = (ev, ...a) => {
-      return this.#processEmit(ev, ...a);
-    };
-    this.#process.reallyExit = (code) => {
-      return this.#processReallyExit(code);
-    };
-  }
-  unload() {
-    if (!this.#loaded) {
-      return;
-    }
-    this.#loaded = false;
-    signals.forEach((sig) => {
-      const listener = this.#sigListeners[sig];
-      if (!listener) {
-        throw new Error("Listener not defined for signal: " + sig);
-      }
-      try {
-        this.#process.removeListener(sig, listener);
-      } catch (_) {
-      }
-    });
-    this.#process.emit = this.#originalProcessEmit;
-    this.#process.reallyExit = this.#originalProcessReallyExit;
-    this.#emitter.count -= 1;
-  }
-  #processReallyExit(code) {
-    if (!processOk(this.#process)) {
-      return 0;
-    }
-    this.#process.exitCode = code || 0;
-    this.#emitter.emit("exit", this.#process.exitCode, null);
-    return this.#originalProcessReallyExit.call(this.#process, this.#process.exitCode);
-  }
-  #processEmit(ev, ...args) {
-    const og = this.#originalProcessEmit;
-    if (ev === "exit" && processOk(this.#process)) {
-      if (typeof args[0] === "number") {
-        this.#process.exitCode = args[0];
-      }
-      const ret = og.call(this.#process, ev, ...args);
-      this.#emitter.emit("exit", this.#process.exitCode, null);
-      return ret;
-    } else {
-      return og.call(this.#process, ev, ...args);
-    }
-  }
-};
-var process3 = globalThis.process;
-var {
-  /**
-   * Called when the process is exiting, whether via signal, explicit
-   * exit, or running out of stuff to do.
-   *
-   * If the global process object is not suitable for instrumentation,
-   * then this will be a no-op.
-   *
-   * Returns a function that may be used to unload signal-exit.
-   */
-  onExit,
-  /**
-   * Load the listeners.  Likely you never need to call this, unless
-   * doing a rather deep integration with signal-exit functionality.
-   * Mostly exposed for the benefit of testing.
-   *
-   * @internal
-   */
-  load,
-  /**
-   * Unload the listeners.  Likely you never need to call this, unless
-   * doing a rather deep integration with signal-exit functionality.
-   * Mostly exposed for the benefit of testing.
-   *
-   * @internal
-   */
-  unload
-} = signalExitWrap(processOk(process3) ? new SignalExit(process3) : new SignalExitFallback());
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/screen-manager.js
-var import_strip_ansi = __toESM(require_strip_ansi(), 1);
-var import_ansi_escapes = __toESM(require_ansi_escapes(), 1);
-var height = (content) => content.split("\n").length;
-var lastLine = (content) => content.split("\n").pop() ?? "";
-function cursorDown(n) {
-  return n > 0 ? import_ansi_escapes.default.cursorDown(n) : "";
-}
-var ScreenManager = class {
-  rl;
-  // These variables are keeping information to allow correct prompt re-rendering
-  height = 0;
-  extraLinesUnderPrompt = 0;
-  cursorPos;
-  constructor(rl) {
-    this.rl = rl;
-    this.rl = rl;
-    this.cursorPos = rl.getCursorPos();
-  }
-  write(content) {
-    this.rl.output.unmute();
-    this.rl.output.write(content);
-    this.rl.output.mute();
-  }
-  render(content, bottomContent = "") {
-    const promptLine = lastLine(content);
-    const rawPromptLine = (0, import_strip_ansi.default)(promptLine);
-    let prompt = rawPromptLine;
-    if (this.rl.line.length > 0) {
-      prompt = prompt.slice(0, -this.rl.line.length);
-    }
-    this.rl.setPrompt(prompt);
-    this.cursorPos = this.rl.getCursorPos();
-    const width = readlineWidth();
-    content = breakLines(content, width);
-    bottomContent = breakLines(bottomContent, width);
-    if (rawPromptLine.length % width === 0) {
-      content += "\n";
-    }
-    let output = content + (bottomContent ? "\n" + bottomContent : "");
-    const promptLineUpDiff = Math.floor(rawPromptLine.length / width) - this.cursorPos.rows;
-    const bottomContentHeight = promptLineUpDiff + (bottomContent ? height(bottomContent) : 0);
-    if (bottomContentHeight > 0)
-      output += import_ansi_escapes.default.cursorUp(bottomContentHeight);
-    output += import_ansi_escapes.default.cursorTo(this.cursorPos.cols);
-    this.write(cursorDown(this.extraLinesUnderPrompt) + import_ansi_escapes.default.eraseLines(this.height) + output);
-    this.extraLinesUnderPrompt = bottomContentHeight;
-    this.height = height(output);
-  }
-  checkCursorPos() {
-    const cursorPos = this.rl.getCursorPos();
-    if (cursorPos.cols !== this.cursorPos.cols) {
-      this.write(import_ansi_escapes.default.cursorTo(cursorPos.cols));
-      this.cursorPos = cursorPos;
-    }
-  }
-  done({ clearContent }) {
-    this.rl.setPrompt("");
-    let output = cursorDown(this.extraLinesUnderPrompt);
-    output += clearContent ? import_ansi_escapes.default.eraseLines(this.height) : "\n";
-    output += import_ansi_escapes.default.cursorShow;
-    this.write(output);
-    this.rl.close();
-  }
-};
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/promise-polyfill.js
-var PromisePolyfill = class extends Promise {
-  // Available starting from Node 22
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers
-  static withResolver() {
-    let resolve2;
-    let reject;
-    const promise = new Promise((res, rej) => {
-      resolve2 = res;
-      reject = rej;
-    });
-    return { promise, resolve: resolve2, reject };
-  }
-};
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/create-prompt.js
-var import_mute_stream = __toESM(require_lib(), 1);
-import * as readline2 from "node:readline";
-import { AsyncResource as AsyncResource3 } from "node:async_hooks";
-function createPrompt(view) {
-  const prompt = (config, context = {}) => {
-    const { input = process.stdin, signal } = context;
-    const cleanups = /* @__PURE__ */ new Set();
-    const output = new import_mute_stream.default();
-    output.pipe(context.output ?? process.stdout);
-    const rl = readline2.createInterface({
-      terminal: true,
-      input,
-      output
-    });
-    const screen = new ScreenManager(rl);
-    const { promise, resolve: resolve2, reject } = PromisePolyfill.withResolver();
-    const cancel = () => reject(new CancelPromptError());
-    if (signal) {
-      const abort = () => reject(new AbortPromptError({ cause: signal.reason }));
-      if (signal.aborted) {
-        abort();
-        return Object.assign(promise, { cancel });
-      }
-      signal.addEventListener("abort", abort);
-      cleanups.add(() => signal.removeEventListener("abort", abort));
-    }
-    cleanups.add(onExit((code, signal2) => {
-      reject(new ExitPromptError(`User force closed the prompt with ${code} ${signal2}`));
-    }));
-    const checkCursorPos = () => screen.checkCursorPos();
-    rl.input.on("keypress", checkCursorPos);
-    cleanups.add(() => rl.input.removeListener("keypress", checkCursorPos));
-    return withHooks(rl, (cycle) => {
-      const hooksCleanup = AsyncResource3.bind(() => effectScheduler.clearAll());
-      rl.on("close", hooksCleanup);
-      cleanups.add(() => rl.removeListener("close", hooksCleanup));
-      cycle(() => {
-        try {
-          const nextView = view(config, (value) => {
-            setImmediate(() => resolve2(value));
-          });
-          const [content, bottomContent] = typeof nextView === "string" ? [nextView] : nextView;
-          screen.render(content, bottomContent);
-          effectScheduler.run();
-        } catch (error) {
-          reject(error);
-        }
-      });
-      return Object.assign(promise.then((answer) => {
-        effectScheduler.clearAll();
-        return answer;
-      }, (error) => {
-        effectScheduler.clearAll();
-        throw error;
-      }).finally(() => {
-        cleanups.forEach((cleanup) => cleanup());
-        screen.done({ clearContent: Boolean(context.clearPromptOnDone) });
-        output.end();
-      }).then(() => promise), { cancel });
-    });
-  };
-  return prompt;
-}
-
-// ../../node_modules/@inquirer/core/dist/esm/lib/Separator.js
-var import_yoctocolors_cjs2 = __toESM(require_yoctocolors_cjs(), 1);
-var Separator = class {
-  separator = import_yoctocolors_cjs2.default.dim(Array.from({ length: 15 }).join(esm_default.line));
-  type = "separator";
-  constructor(separator) {
-    if (separator) {
-      this.separator = separator;
-    }
-  }
-  static isSeparator(choice) {
-    return Boolean(choice && typeof choice === "object" && "type" in choice && choice.type === "separator");
-  }
-};
-
-// ../../node_modules/@inquirer/checkbox/dist/esm/index.js
-var import_yoctocolors_cjs3 = __toESM(require_yoctocolors_cjs(), 1);
-var import_ansi_escapes2 = __toESM(require_ansi_escapes(), 1);
-var checkboxTheme = {
-  icon: {
-    checked: import_yoctocolors_cjs3.default.green(esm_default.circleFilled),
-    unchecked: esm_default.circle,
-    cursor: esm_default.pointer
-  },
-  style: {
-    disabledChoice: (text) => import_yoctocolors_cjs3.default.dim(`- ${text}`),
-    renderSelectedChoices: (selectedChoices) => selectedChoices.map((choice) => choice.short).join(", "),
-    description: (text) => import_yoctocolors_cjs3.default.cyan(text)
-  },
-  helpMode: "auto"
-};
-function isSelectable(item) {
-  return !Separator.isSeparator(item) && !item.disabled;
-}
-function isChecked(item) {
-  return isSelectable(item) && Boolean(item.checked);
-}
-function toggle(item) {
-  return isSelectable(item) ? { ...item, checked: !item.checked } : item;
-}
-function check(checked) {
-  return function(item) {
-    return isSelectable(item) ? { ...item, checked } : item;
-  };
-}
-function normalizeChoices(choices) {
-  return choices.map((choice) => {
-    if (Separator.isSeparator(choice))
-      return choice;
-    if (typeof choice === "string") {
-      return {
-        value: choice,
-        name: choice,
-        short: choice,
-        disabled: false,
-        checked: false
-      };
-    }
-    const name = choice.name ?? String(choice.value);
-    return {
-      value: choice.value,
-      name,
-      short: choice.short ?? name,
-      description: choice.description,
-      disabled: choice.disabled ?? false,
-      checked: choice.checked ?? false
-    };
-  });
-}
-var esm_default2 = createPrompt((config, done) => {
-  const { instructions, pageSize = 7, loop = true, required, validate = () => true } = config;
-  const theme = makeTheme(checkboxTheme, config.theme);
-  const firstRender = useRef(true);
-  const [status, setStatus] = useState("idle");
-  const prefix = usePrefix({ status, theme });
-  const [items, setItems] = useState(normalizeChoices(config.choices));
-  const bounds = useMemo(() => {
-    const first = items.findIndex(isSelectable);
-    const last = items.findLastIndex(isSelectable);
-    if (first === -1) {
-      throw new ValidationError("[checkbox prompt] No selectable choices. All choices are disabled.");
-    }
-    return { first, last };
-  }, [items]);
-  const [active, setActive] = useState(bounds.first);
-  const [showHelpTip, setShowHelpTip] = useState(true);
-  const [errorMsg, setError] = useState();
-  useKeypress(async (key) => {
-    if (isEnterKey(key)) {
-      const selection = items.filter(isChecked);
-      const isValid = await validate([...selection]);
-      if (required && !items.some(isChecked)) {
-        setError("At least one choice must be selected");
-      } else if (isValid === true) {
-        setStatus("done");
-        done(selection.map((choice) => choice.value));
-      } else {
-        setError(isValid || "You must select a valid value");
-      }
-    } else if (isUpKey(key) || isDownKey(key)) {
-      if (loop || isUpKey(key) && active !== bounds.first || isDownKey(key) && active !== bounds.last) {
-        const offset = isUpKey(key) ? -1 : 1;
-        let next = active;
-        do {
-          next = (next + offset + items.length) % items.length;
-        } while (!isSelectable(items[next]));
-        setActive(next);
-      }
-    } else if (isSpaceKey(key)) {
-      setError(void 0);
-      setShowHelpTip(false);
-      setItems(items.map((choice, i) => i === active ? toggle(choice) : choice));
-    } else if (key.name === "a") {
-      const selectAll = items.some((choice) => isSelectable(choice) && !choice.checked);
-      setItems(items.map(check(selectAll)));
-    } else if (key.name === "i") {
-      setItems(items.map(toggle));
-    } else if (isNumberKey(key)) {
-      const position = Number(key.name) - 1;
-      const item = items[position];
-      if (item != null && isSelectable(item)) {
-        setActive(position);
-        setItems(items.map((choice, i) => i === position ? toggle(choice) : choice));
-      }
-    }
-  });
-  const message = theme.style.message(config.message, status);
-  let description;
-  const page = usePagination({
-    items,
-    active,
-    renderItem({ item, isActive }) {
-      if (Separator.isSeparator(item)) {
-        return ` ${item.separator}`;
-      }
-      if (item.disabled) {
-        const disabledLabel = typeof item.disabled === "string" ? item.disabled : "(disabled)";
-        return theme.style.disabledChoice(`${item.name} ${disabledLabel}`);
-      }
-      if (isActive) {
-        description = item.description;
-      }
-      const checkbox = item.checked ? theme.icon.checked : theme.icon.unchecked;
-      const color = isActive ? theme.style.highlight : (x) => x;
-      const cursor = isActive ? theme.icon.cursor : " ";
-      return color(`${cursor}${checkbox} ${item.name}`);
-    },
-    pageSize,
-    loop
-  });
-  if (status === "done") {
-    const selection = items.filter(isChecked);
-    const answer = theme.style.answer(theme.style.renderSelectedChoices(selection, items));
-    return `${prefix} ${message} ${answer}`;
-  }
-  let helpTipTop = "";
-  let helpTipBottom = "";
-  if (theme.helpMode === "always" || theme.helpMode === "auto" && showHelpTip && (instructions === void 0 || instructions)) {
-    if (typeof instructions === "string") {
-      helpTipTop = instructions;
-    } else {
-      const keys = [
-        `${theme.style.key("space")} to select`,
-        `${theme.style.key("a")} to toggle all`,
-        `${theme.style.key("i")} to invert selection`,
-        `and ${theme.style.key("enter")} to proceed`
-      ];
-      helpTipTop = ` (Press ${keys.join(", ")})`;
-    }
-    if (items.length > pageSize && (theme.helpMode === "always" || // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    theme.helpMode === "auto" && firstRender.current)) {
-      helpTipBottom = `
-${theme.style.help("(Use arrow keys to reveal more choices)")}`;
-      firstRender.current = false;
-    }
-  }
-  const choiceDescription = description ? `
-${theme.style.description(description)}` : ``;
-  let error = "";
-  if (errorMsg) {
-    error = `
-${theme.style.error(errorMsg)}`;
-  }
-  return `${prefix} ${message}${helpTipTop}
-${page}${helpTipBottom}${choiceDescription}${error}${import_ansi_escapes2.default.cursorHide}`;
-});
-
-// ../../node_modules/@inquirer/editor/dist/esm/index.js
-var import_external_editor = __toESM(require_main(), 1);
-import { AsyncResource as AsyncResource4 } from "node:async_hooks";
-var esm_default3 = createPrompt((config, done) => {
-  const { waitForUseInput = true, file: { postfix = config.postfix ?? ".txt", ...fileProps } = {}, validate = () => true } = config;
-  const theme = makeTheme(config.theme);
-  const [status, setStatus] = useState("idle");
-  const [value, setValue] = useState(config.default || "");
-  const [errorMsg, setError] = useState();
-  const prefix = usePrefix({ status, theme });
-  function startEditor(rl) {
-    rl.pause();
-    const editCallback = AsyncResource4.bind(async (error2, answer) => {
-      rl.resume();
-      if (error2) {
-        setError(error2.toString());
-      } else {
-        setStatus("loading");
-        const isValid = await validate(answer);
-        if (isValid === true) {
-          setError(void 0);
-          setStatus("done");
-          done(answer);
-        } else {
-          setValue(answer);
-          setError(isValid || "You must provide a valid value");
-          setStatus("idle");
-        }
-      }
-    });
-    (0, import_external_editor.editAsync)(value, (error2, answer) => void editCallback(error2, answer), {
-      postfix,
-      ...fileProps
-    });
-  }
-  useEffect((rl) => {
-    if (!waitForUseInput) {
-      startEditor(rl);
-    }
-  }, []);
-  useKeypress((key, rl) => {
-    if (status !== "idle") {
-      return;
-    }
-    if (isEnterKey(key)) {
-      startEditor(rl);
-    }
-  });
-  const message = theme.style.message(config.message, status);
-  let helpTip = "";
-  if (status === "loading") {
-    helpTip = theme.style.help("Received");
-  } else if (status === "idle") {
-    const enterKey = theme.style.key("enter");
-    helpTip = theme.style.help(`Press ${enterKey} to launch your preferred editor.`);
-  }
-  let error = "";
-  if (errorMsg) {
-    error = theme.style.error(errorMsg);
-  }
-  return [[prefix, message, helpTip].filter(Boolean).join(" "), error];
-});
-
-// ../../node_modules/@inquirer/confirm/dist/esm/index.js
-var esm_default4 = createPrompt((config, done) => {
-  const { transformer = (answer) => answer ? "yes" : "no" } = config;
-  const [status, setStatus] = useState("idle");
-  const [value, setValue] = useState("");
-  const theme = makeTheme(config.theme);
-  const prefix = usePrefix({ status, theme });
-  useKeypress((key, rl) => {
-    if (isEnterKey(key)) {
-      let answer = config.default !== false;
-      if (/^(y|yes)/i.test(value))
-        answer = true;
-      else if (/^(n|no)/i.test(value))
-        answer = false;
-      setValue(transformer(answer));
-      setStatus("done");
-      done(answer);
-    } else {
-      setValue(rl.line);
-    }
-  });
-  let formattedValue = value;
-  let defaultValue = "";
-  if (status === "done") {
-    formattedValue = theme.style.answer(value);
-  } else {
-    defaultValue = ` ${theme.style.defaultAnswer(config.default === false ? "y/N" : "Y/n")}`;
-  }
-  const message = theme.style.message(config.message, status);
-  return `${prefix} ${message}${defaultValue} ${formattedValue}`;
-});
-
-// ../../node_modules/@inquirer/input/dist/esm/index.js
-var esm_default5 = createPrompt((config, done) => {
-  const { required, validate = () => true } = config;
-  const theme = makeTheme(config.theme);
-  const [status, setStatus] = useState("idle");
-  const [defaultValue = "", setDefaultValue] = useState(config.default);
-  const [errorMsg, setError] = useState();
-  const [value, setValue] = useState("");
-  const prefix = usePrefix({ status, theme });
-  useKeypress(async (key, rl) => {
-    if (status !== "idle") {
-      return;
-    }
-    if (isEnterKey(key)) {
-      const answer = value || defaultValue;
-      setStatus("loading");
-      const isValid = required && !answer ? "You must provide a value" : await validate(answer);
-      if (isValid === true) {
-        setValue(answer);
-        setStatus("done");
-        done(answer);
-      } else {
-        rl.write(value);
-        setError(isValid || "You must provide a valid value");
-        setStatus("idle");
-      }
-    } else if (isBackspaceKey(key) && !value) {
-      setDefaultValue(void 0);
-    } else if (key.name === "tab" && !value) {
-      setDefaultValue(void 0);
-      rl.clearLine(0);
-      rl.write(defaultValue);
-      setValue(defaultValue);
-    } else {
-      setValue(rl.line);
-      setError(void 0);
-    }
-  });
-  const message = theme.style.message(config.message, status);
-  let formattedValue = value;
-  if (typeof config.transformer === "function") {
-    formattedValue = config.transformer(value, { isFinal: status === "done" });
-  } else if (status === "done") {
-    formattedValue = theme.style.answer(value);
-  }
-  let defaultStr;
-  if (defaultValue && status !== "done" && !value) {
-    defaultStr = theme.style.defaultAnswer(defaultValue);
-  }
-  let error = "";
-  if (errorMsg) {
-    error = theme.style.error(errorMsg);
-  }
-  return [
-    [prefix, message, defaultStr, formattedValue].filter((v) => v !== void 0).join(" "),
-    error
-  ];
-});
-
-// ../../node_modules/@inquirer/number/dist/esm/index.js
-function isStepOf(value, step, min) {
-  const valuePow = value * Math.pow(10, 6);
-  const stepPow = step * Math.pow(10, 6);
-  const minPow = min * Math.pow(10, 6);
-  return (valuePow - (Number.isFinite(min) ? minPow : 0)) % stepPow === 0;
-}
-function validateNumber(value, { min, max, step }) {
-  if (value == null || Number.isNaN(value)) {
-    return false;
-  } else if (value < min || value > max) {
-    return `Value must be between ${min} and ${max}`;
-  } else if (step !== "any" && !isStepOf(value, step, min)) {
-    return `Value must be a multiple of ${step}${Number.isFinite(min) ? ` starting from ${min}` : ""}`;
-  }
-  return true;
-}
-var esm_default6 = createPrompt((config, done) => {
-  const { validate = () => true, min = -Infinity, max = Infinity, step = 1, required = false } = config;
-  const theme = makeTheme(config.theme);
-  const [status, setStatus] = useState("idle");
-  const [value, setValue] = useState("");
-  const validDefault = validateNumber(config.default, { min, max, step }) === true ? config.default?.toString() : void 0;
-  const [defaultValue = "", setDefaultValue] = useState(validDefault);
-  const [errorMsg, setError] = useState();
-  const prefix = usePrefix({ status, theme });
-  useKeypress(async (key, rl) => {
-    if (status !== "idle") {
-      return;
-    }
-    if (isEnterKey(key)) {
-      const input = value || defaultValue;
-      const answer = input === "" ? void 0 : Number(input);
-      setStatus("loading");
-      let isValid = true;
-      if (required || answer != null) {
-        isValid = validateNumber(answer, { min, max, step });
-      }
-      if (isValid === true) {
-        isValid = await validate(answer);
-      }
-      if (isValid === true) {
-        setValue(String(answer ?? ""));
-        setStatus("done");
-        done(answer);
-      } else {
-        rl.write(value);
-        setError(isValid || "You must provide a valid numeric value");
-        setStatus("idle");
-      }
-    } else if (isBackspaceKey(key) && !value) {
-      setDefaultValue(void 0);
-    } else if (key.name === "tab" && !value) {
-      setDefaultValue(void 0);
-      rl.clearLine(0);
-      rl.write(defaultValue);
-      setValue(defaultValue);
-    } else {
-      setValue(rl.line);
-      setError(void 0);
-    }
-  });
-  const message = theme.style.message(config.message, status);
-  let formattedValue = value;
-  if (status === "done") {
-    formattedValue = theme.style.answer(value);
-  }
-  let defaultStr;
-  if (defaultValue && status !== "done" && !value) {
-    defaultStr = theme.style.defaultAnswer(defaultValue);
-  }
-  let error = "";
-  if (errorMsg) {
-    error = theme.style.error(errorMsg);
-  }
-  return [
-    [prefix, message, defaultStr, formattedValue].filter((v) => v !== void 0).join(" "),
-    error
-  ];
-});
-
-// ../../node_modules/@inquirer/expand/dist/esm/index.js
-var import_yoctocolors_cjs4 = __toESM(require_yoctocolors_cjs(), 1);
-function normalizeChoices2(choices) {
-  return choices.map((choice) => {
-    if (Separator.isSeparator(choice)) {
-      return choice;
-    }
-    const name = "name" in choice ? choice.name : String(choice.value);
-    const value = "value" in choice ? choice.value : name;
-    return {
-      value,
-      name,
-      key: choice.key.toLowerCase()
-    };
-  });
-}
-var helpChoice = {
-  key: "h",
-  name: "Help, list all options",
-  value: void 0
-};
-var esm_default7 = createPrompt((config, done) => {
-  const { default: defaultKey = "h" } = config;
-  const choices = useMemo(() => normalizeChoices2(config.choices), [config.choices]);
-  const [status, setStatus] = useState("idle");
-  const [value, setValue] = useState("");
-  const [expanded, setExpanded] = useState(config.expanded ?? false);
-  const [errorMsg, setError] = useState();
-  const theme = makeTheme(config.theme);
-  const prefix = usePrefix({ theme, status });
-  useKeypress((event, rl) => {
-    if (isEnterKey(event)) {
-      const answer = (value || defaultKey).toLowerCase();
-      if (answer === "h" && !expanded) {
-        setExpanded(true);
-      } else {
-        const selectedChoice = choices.find((choice) => !Separator.isSeparator(choice) && choice.key === answer);
-        if (selectedChoice) {
-          setStatus("done");
-          setValue(answer);
-          done(selectedChoice.value);
-        } else if (value === "") {
-          setError("Please input a value");
-        } else {
-          setError(`"${import_yoctocolors_cjs4.default.red(value)}" isn't an available option`);
-        }
-      }
-    } else {
-      setValue(rl.line);
-      setError(void 0);
-    }
-  });
-  const message = theme.style.message(config.message, status);
-  if (status === "done") {
-    const selectedChoice = choices.find((choice) => !Separator.isSeparator(choice) && choice.key === value.toLowerCase());
-    return `${prefix} ${message} ${theme.style.answer(selectedChoice.name)}`;
-  }
-  const allChoices = expanded ? choices : [...choices, helpChoice];
-  let longChoices = "";
-  let shortChoices = allChoices.map((choice) => {
-    if (Separator.isSeparator(choice))
-      return "";
-    if (choice.key === defaultKey) {
-      return choice.key.toUpperCase();
-    }
-    return choice.key;
-  }).join("");
-  shortChoices = ` ${theme.style.defaultAnswer(shortChoices)}`;
-  if (expanded) {
-    shortChoices = "";
-    longChoices = allChoices.map((choice) => {
-      if (Separator.isSeparator(choice)) {
-        return ` ${choice.separator}`;
-      }
-      const line = `  ${choice.key}) ${choice.name}`;
-      if (choice.key === value.toLowerCase()) {
-        return theme.style.highlight(line);
-      }
-      return line;
-    }).join("\n");
-  }
-  let helpTip = "";
-  const currentOption = choices.find((choice) => !Separator.isSeparator(choice) && choice.key === value.toLowerCase());
-  if (currentOption) {
-    helpTip = `${import_yoctocolors_cjs4.default.cyan(">>")} ${currentOption.name}`;
-  }
-  let error = "";
-  if (errorMsg) {
-    error = theme.style.error(errorMsg);
-  }
-  return [
-    `${prefix} ${message}${shortChoices} ${value}`,
-    [longChoices, helpTip, error].filter(Boolean).join("\n")
-  ];
-});
-
-// ../../node_modules/@inquirer/rawlist/dist/esm/index.js
-var import_yoctocolors_cjs5 = __toESM(require_yoctocolors_cjs(), 1);
-var numberRegex = /\d+/;
-function isSelectableChoice(choice) {
-  return choice != null && !Separator.isSeparator(choice);
-}
-function normalizeChoices3(choices) {
-  let index = 0;
-  return choices.map((choice) => {
-    if (Separator.isSeparator(choice))
-      return choice;
-    index += 1;
-    if (typeof choice === "string") {
-      return {
-        value: choice,
-        name: choice,
-        short: choice,
-        key: String(index)
-      };
-    }
-    const name = choice.name ?? String(choice.value);
-    return {
-      value: choice.value,
-      name,
-      short: choice.short ?? name,
-      key: choice.key ?? String(index)
-    };
-  });
-}
-var esm_default8 = createPrompt((config, done) => {
-  const choices = useMemo(() => normalizeChoices3(config.choices), [config.choices]);
-  const [status, setStatus] = useState("idle");
-  const [value, setValue] = useState("");
-  const [errorMsg, setError] = useState();
-  const theme = makeTheme(config.theme);
-  const prefix = usePrefix({ status, theme });
-  useKeypress((key, rl) => {
-    if (isEnterKey(key)) {
-      let selectedChoice;
-      if (numberRegex.test(value)) {
-        const answer = Number.parseInt(value, 10) - 1;
-        selectedChoice = choices.filter(isSelectableChoice)[answer];
-      } else {
-        selectedChoice = choices.find((choice) => isSelectableChoice(choice) && choice.key === value);
-      }
-      if (isSelectableChoice(selectedChoice)) {
-        setValue(selectedChoice.short);
-        setStatus("done");
-        done(selectedChoice.value);
-      } else if (value === "") {
-        setError("Please input a value");
-      } else {
-        setError(`"${import_yoctocolors_cjs5.default.red(value)}" isn't an available option`);
-      }
-    } else {
-      setValue(rl.line);
-      setError(void 0);
-    }
-  });
-  const message = theme.style.message(config.message, status);
-  if (status === "done") {
-    return `${prefix} ${message} ${theme.style.answer(value)}`;
-  }
-  const choicesStr = choices.map((choice) => {
-    if (Separator.isSeparator(choice)) {
-      return ` ${choice.separator}`;
-    }
-    const line = `  ${choice.key}) ${choice.name}`;
-    if (choice.key === value.toLowerCase()) {
-      return theme.style.highlight(line);
-    }
-    return line;
-  }).join("\n");
-  let error = "";
-  if (errorMsg) {
-    error = theme.style.error(errorMsg);
-  }
-  return [
-    `${prefix} ${message} ${value}`,
-    [choicesStr, error].filter(Boolean).join("\n")
-  ];
-});
-
-// ../../node_modules/@inquirer/password/dist/esm/index.js
-var import_ansi_escapes3 = __toESM(require_ansi_escapes(), 1);
-var esm_default9 = createPrompt((config, done) => {
-  const { validate = () => true } = config;
-  const theme = makeTheme(config.theme);
-  const [status, setStatus] = useState("idle");
-  const [errorMsg, setError] = useState();
-  const [value, setValue] = useState("");
-  const prefix = usePrefix({ status, theme });
-  useKeypress(async (key, rl) => {
-    if (status !== "idle") {
-      return;
-    }
-    if (isEnterKey(key)) {
-      const answer = value;
-      setStatus("loading");
-      const isValid = await validate(answer);
-      if (isValid === true) {
-        setValue(answer);
-        setStatus("done");
-        done(answer);
-      } else {
-        rl.write(value);
-        setError(isValid || "You must provide a valid value");
-        setStatus("idle");
-      }
-    } else {
-      setValue(rl.line);
-      setError(void 0);
-    }
-  });
-  const message = theme.style.message(config.message, status);
-  let formattedValue = "";
-  let helpTip;
-  if (config.mask) {
-    const maskChar = typeof config.mask === "string" ? config.mask : "*";
-    formattedValue = maskChar.repeat(value.length);
-  } else if (status !== "done") {
-    helpTip = `${theme.style.help("[input is masked]")}${import_ansi_escapes3.default.cursorHide}`;
-  }
-  if (status === "done") {
-    formattedValue = theme.style.answer(formattedValue);
-  }
-  let error = "";
-  if (errorMsg) {
-    error = theme.style.error(errorMsg);
-  }
-  return [[prefix, message, config.mask ? formattedValue : helpTip].join(" "), error];
-});
-
-// ../../node_modules/@inquirer/search/dist/esm/index.js
-var import_yoctocolors_cjs6 = __toESM(require_yoctocolors_cjs(), 1);
-var searchTheme = {
-  icon: { cursor: esm_default.pointer },
-  style: {
-    disabled: (text) => import_yoctocolors_cjs6.default.dim(`- ${text}`),
-    searchTerm: (text) => import_yoctocolors_cjs6.default.cyan(text),
-    description: (text) => import_yoctocolors_cjs6.default.cyan(text)
-  },
-  helpMode: "auto"
-};
-function isSelectable2(item) {
-  return !Separator.isSeparator(item) && !item.disabled;
-}
-function normalizeChoices4(choices) {
-  return choices.map((choice) => {
-    if (Separator.isSeparator(choice))
-      return choice;
-    if (typeof choice === "string") {
-      return {
-        value: choice,
-        name: choice,
-        short: choice,
-        disabled: false
-      };
-    }
-    const name = choice.name ?? String(choice.value);
-    return {
-      value: choice.value,
-      name,
-      description: choice.description,
-      short: choice.short ?? name,
-      disabled: choice.disabled ?? false
-    };
-  });
-}
-var esm_default10 = createPrompt((config, done) => {
-  const { pageSize = 7, validate = () => true } = config;
-  const theme = makeTheme(searchTheme, config.theme);
-  const firstRender = useRef(true);
-  const [status, setStatus] = useState("loading");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchError, setSearchError] = useState();
-  const prefix = usePrefix({ status, theme });
-  const bounds = useMemo(() => {
-    const first = searchResults.findIndex(isSelectable2);
-    const last = searchResults.findLastIndex(isSelectable2);
-    return { first, last };
-  }, [searchResults]);
-  const [active = bounds.first, setActive] = useState();
-  useEffect(() => {
-    const controller = new AbortController();
-    setStatus("loading");
-    setSearchError(void 0);
-    const fetchResults = async () => {
-      try {
-        const results = await config.source(searchTerm || void 0, {
-          signal: controller.signal
-        });
-        if (!controller.signal.aborted) {
-          setActive(void 0);
-          setSearchError(void 0);
-          setSearchResults(normalizeChoices4(results));
-          setStatus("idle");
-        }
-      } catch (error2) {
-        if (!controller.signal.aborted && error2 instanceof Error) {
-          setSearchError(error2.message);
-        }
-      }
-    };
-    void fetchResults();
-    return () => {
-      controller.abort();
-    };
-  }, [searchTerm]);
-  const selectedChoice = searchResults[active];
-  useKeypress(async (key, rl) => {
-    if (isEnterKey(key)) {
-      if (selectedChoice) {
-        setStatus("loading");
-        const isValid = await validate(selectedChoice.value);
-        setStatus("idle");
-        if (isValid === true) {
-          setStatus("done");
-          done(selectedChoice.value);
-        } else if (selectedChoice.name === searchTerm) {
-          setSearchError(isValid || "You must provide a valid value");
-        } else {
-          rl.write(selectedChoice.name);
-          setSearchTerm(selectedChoice.name);
-        }
-      } else {
-        rl.write(searchTerm);
-      }
-    } else if (key.name === "tab" && selectedChoice) {
-      rl.clearLine(0);
-      rl.write(selectedChoice.name);
-      setSearchTerm(selectedChoice.name);
-    } else if (status !== "loading" && (key.name === "up" || key.name === "down")) {
-      rl.clearLine(0);
-      if (key.name === "up" && active !== bounds.first || key.name === "down" && active !== bounds.last) {
-        const offset = key.name === "up" ? -1 : 1;
-        let next = active;
-        do {
-          next = (next + offset + searchResults.length) % searchResults.length;
-        } while (!isSelectable2(searchResults[next]));
-        setActive(next);
-      }
-    } else {
-      setSearchTerm(rl.line);
-    }
-  });
-  const message = theme.style.message(config.message, status);
-  if (active > 0) {
-    firstRender.current = false;
-  }
-  let helpTip = "";
-  if (searchResults.length > 1 && (theme.helpMode === "always" || theme.helpMode === "auto" && firstRender.current)) {
-    helpTip = searchResults.length > pageSize ? `
-${theme.style.help("(Use arrow keys to reveal more choices)")}` : `
-${theme.style.help("(Use arrow keys)")}`;
-  }
-  const page = usePagination({
-    items: searchResults,
-    active,
-    renderItem({ item, isActive }) {
-      if (Separator.isSeparator(item)) {
-        return ` ${item.separator}`;
-      }
-      if (item.disabled) {
-        const disabledLabel = typeof item.disabled === "string" ? item.disabled : "(disabled)";
-        return theme.style.disabled(`${item.name} ${disabledLabel}`);
-      }
-      const color = isActive ? theme.style.highlight : (x) => x;
-      const cursor = isActive ? theme.icon.cursor : ` `;
-      return color(`${cursor} ${item.name}`);
-    },
-    pageSize,
-    loop: false
-  });
-  let error;
-  if (searchError) {
-    error = theme.style.error(searchError);
-  } else if (searchResults.length === 0 && searchTerm !== "" && status === "idle") {
-    error = theme.style.error("No results found");
-  }
-  let searchStr;
-  if (status === "done" && selectedChoice) {
-    const answer = selectedChoice.short;
-    return `${prefix} ${message} ${theme.style.answer(answer)}`;
-  } else {
-    searchStr = theme.style.searchTerm(searchTerm);
-  }
-  const choiceDescription = selectedChoice?.description ? `
-${theme.style.description(selectedChoice.description)}` : ``;
-  return [
-    [prefix, message, searchStr].filter(Boolean).join(" "),
-    `${error ?? page}${helpTip}${choiceDescription}`
-  ];
-});
-
-// ../../node_modules/@inquirer/select/dist/esm/index.js
-var import_yoctocolors_cjs7 = __toESM(require_yoctocolors_cjs(), 1);
-var import_ansi_escapes4 = __toESM(require_ansi_escapes(), 1);
-var selectTheme = {
-  icon: { cursor: esm_default.pointer },
-  style: {
-    disabled: (text) => import_yoctocolors_cjs7.default.dim(`- ${text}`),
-    description: (text) => import_yoctocolors_cjs7.default.cyan(text)
-  },
-  helpMode: "auto"
-};
-function isSelectable3(item) {
-  return !Separator.isSeparator(item) && !item.disabled;
-}
-function normalizeChoices5(choices) {
-  return choices.map((choice) => {
-    if (Separator.isSeparator(choice))
-      return choice;
-    if (typeof choice === "string") {
-      return {
-        value: choice,
-        name: choice,
-        short: choice,
-        disabled: false
-      };
-    }
-    const name = choice.name ?? String(choice.value);
-    return {
-      value: choice.value,
-      name,
-      description: choice.description,
-      short: choice.short ?? name,
-      disabled: choice.disabled ?? false
-    };
-  });
-}
-var esm_default11 = createPrompt((config, done) => {
-  const { loop = true, pageSize = 7 } = config;
-  const firstRender = useRef(true);
-  const theme = makeTheme(selectTheme, config.theme);
-  const [status, setStatus] = useState("idle");
-  const prefix = usePrefix({ status, theme });
-  const searchTimeoutRef = useRef();
-  const items = useMemo(() => normalizeChoices5(config.choices), [config.choices]);
-  const bounds = useMemo(() => {
-    const first = items.findIndex(isSelectable3);
-    const last = items.findLastIndex(isSelectable3);
-    if (first === -1) {
-      throw new ValidationError("[select prompt] No selectable choices. All choices are disabled.");
-    }
-    return { first, last };
-  }, [items]);
-  const defaultItemIndex = useMemo(() => {
-    if (!("default" in config))
-      return -1;
-    return items.findIndex((item) => isSelectable3(item) && item.value === config.default);
-  }, [config.default, items]);
-  const [active, setActive] = useState(defaultItemIndex === -1 ? bounds.first : defaultItemIndex);
-  const selectedChoice = items[active];
-  useKeypress((key, rl) => {
-    clearTimeout(searchTimeoutRef.current);
-    if (isEnterKey(key)) {
-      setStatus("done");
-      done(selectedChoice.value);
-    } else if (isUpKey(key) || isDownKey(key)) {
-      rl.clearLine(0);
-      if (loop || isUpKey(key) && active !== bounds.first || isDownKey(key) && active !== bounds.last) {
-        const offset = isUpKey(key) ? -1 : 1;
-        let next = active;
-        do {
-          next = (next + offset + items.length) % items.length;
-        } while (!isSelectable3(items[next]));
-        setActive(next);
-      }
-    } else if (isNumberKey(key)) {
-      rl.clearLine(0);
-      const position = Number(key.name) - 1;
-      const item = items[position];
-      if (item != null && isSelectable3(item)) {
-        setActive(position);
-      }
-    } else if (isBackspaceKey(key)) {
-      rl.clearLine(0);
-    } else {
-      const searchTerm = rl.line.toLowerCase();
-      const matchIndex = items.findIndex((item) => {
-        if (Separator.isSeparator(item) || !isSelectable3(item))
-          return false;
-        return item.name.toLowerCase().startsWith(searchTerm);
-      });
-      if (matchIndex !== -1) {
-        setActive(matchIndex);
-      }
-      searchTimeoutRef.current = setTimeout(() => {
-        rl.clearLine(0);
-      }, 700);
-    }
-  });
-  useEffect(() => () => {
-    clearTimeout(searchTimeoutRef.current);
-  }, []);
-  const message = theme.style.message(config.message, status);
-  let helpTipTop = "";
-  let helpTipBottom = "";
-  if (theme.helpMode === "always" || theme.helpMode === "auto" && firstRender.current) {
-    firstRender.current = false;
-    if (items.length > pageSize) {
-      helpTipBottom = `
-${theme.style.help("(Use arrow keys to reveal more choices)")}`;
-    } else {
-      helpTipTop = theme.style.help("(Use arrow keys)");
-    }
-  }
-  const page = usePagination({
-    items,
-    active,
-    renderItem({ item, isActive }) {
-      if (Separator.isSeparator(item)) {
-        return ` ${item.separator}`;
-      }
-      if (item.disabled) {
-        const disabledLabel = typeof item.disabled === "string" ? item.disabled : "(disabled)";
-        return theme.style.disabled(`${item.name} ${disabledLabel}`);
-      }
-      const color = isActive ? theme.style.highlight : (x) => x;
-      const cursor = isActive ? theme.icon.cursor : ` `;
-      return color(`${cursor} ${item.name}`);
-    },
-    pageSize,
-    loop
-  });
-  if (status === "done") {
-    return `${prefix} ${message} ${theme.style.answer(selectedChoice.short)}`;
-  }
-  const choiceDescription = selectedChoice.description ? `
-${theme.style.description(selectedChoice.description)}` : ``;
-  return `${[prefix, message, helpTipTop].filter(Boolean).join(" ")}
-${page}${helpTipBottom}${choiceDescription}${import_ansi_escapes4.default.cursorHide}`;
-});
-
-// ../../shared/common/dist/common.js
-function compareIgnoreCase(str1, str2) {
-  if (!str1 || !str2)
-    return false;
-  return str1.localeCompare(str2, void 0, { sensitivity: "base" }) === 0;
-}
-function getDateIgnoreTimezone(dateString) {
-  if (!dateString) {
-    throw new Error("Date string is undefined");
-  }
-  const timezoneIdx = dateString.lastIndexOf("+");
-  dateString = timezoneIdx === -1 ? dateString : dateString.substring(0, timezoneIdx);
-  return new Date(dateString);
-}
-function handleErrorUnknown(ex) {
-  if (ex instanceof Error) {
-    return ex;
-  } else if (typeof ex === "string") {
-    return new Error(ex);
-  }
-  return new Error(`An error with info: "${String(ex ?? "Unknown")}"`);
-}
-
-// src/onedrive-name-date-fixer.ts
-import { promises as fs2 } from "fs";
-import { extname, join, resolve } from "path";
-import { exiftool } from "exiftool-vendored";
-var logger2 = getLogger("name-date-fixer");
-var supportedExtensions = [".heic", ".jpg", ".jpeg", ".png", ".mp4", ".mov"];
-var IPHONE_MAKE = "apple";
-var OneDriveNameDateFixer = class _OneDriveNameDateFixer {
-  dryRun;
-  handledFiles = [];
-  constructor(dryRun) {
-    this.dryRun = dryRun;
-  }
-  static async fixFileNames(folderPath, dryRun) {
-    const fixer = new _OneDriveNameDateFixer(dryRun);
-    await fixer.fixFileNames(folderPath);
-    return fixer.handledFiles;
-  }
-  async fixFileNames(folderPath) {
-    try {
-      logger2.info('Starting file name update process in "%s"', resolve(folderPath));
-      await this.iterateFiles(folderPath);
-    } catch (error) {
-      logger2.fatal(error, "Error updating file names:");
-    } finally {
-      logger2.info("Closing exiftool process");
-      await exiftool.end();
-    }
-  }
-  async iterateFiles(folderPath) {
-    const files = await fs2.readdir(folderPath, { withFileTypes: true });
-    for (const file of files) {
-      const filePath = join(folderPath, file.name);
-      if (file.isDirectory()) {
-        logger2.info('Processing folder "%s"', file.name);
-        await this.iterateFiles(filePath);
-      } else if (supportedExtensions.includes(extname(file.name).toLowerCase())) {
-        await this.processFile(file);
-      }
-    }
-  }
-  async processFile(file) {
-    logger2.debug('Processing file "%s"', file.name);
-    const filePath = join(file.parentPath, file.name);
-    try {
-      const metadata = await exiftool.read(filePath);
-      const isIphone = compareIgnoreCase(IPHONE_MAKE, metadata.Make);
-      if (!isIphone) {
-        this.handledFiles.push({ file, status: "SKIPPED_NOT_IPHONE" /* SkippedNotIPhone */ });
-        logger2.debug(`Skipping non-iPhone file "${file.name}"`);
-        return;
-      }
-      if (!metadata.CreateDate) {
-        this.handledFiles.push({ file, status: "SKIPPED_DATE_UNKNOWN" /* SkippedDateUnknown */ });
-        logger2.warn('Skipping "%s", file has no creation date in metadata', file.name);
-        return;
-      }
-      const fileCreationDate = getDateIgnoreTimezone(metadata.CreateDate.toString());
-      const fileNameCreationDate = this.parseDateFromFileName(filePath);
-      if (!fileNameCreationDate) {
-        this.handledFiles.push({ file, status: "SKIPPED_DATE_UNKNOWN" /* SkippedDateUnknown */ });
-        logger2.warn('Skipping "%s", failed to parse creation date from file name', file.name);
-        return;
-      }
-      if (fileNameCreationDate.getTime() === fileCreationDate.getTime()) {
-        this.handledFiles.push({ file, status: "NO_UPDATE_REQUIRED" /* NoUpdateRequired */ });
-        logger2.debug(`Skipping "%s", No change required`, file.name);
-        return;
-      }
-      const newFileName = this.getNewFilename(file, fileCreationDate);
-      if (this.dryRun) {
-        logger2.warn('Update required, dry-run mode: "%s" --> "%s"', file.name, newFileName);
-      } else {
-        logger2.trace([file.name, newFileName], "Updating file name");
-        await fs2.rename(
-          filePath,
-          join(file.parentPath, this.getNewFilename(file, fileCreationDate))
-        );
-        logger2.info('File name updated: "%s" --> "%s"', file.name, newFileName);
-      }
-      this.handledFiles.push({
-        file,
-        status: "UPDATED" /* Updated */,
-        updateName: newFileName
-      });
-    } catch (error) {
-      this.handledFiles.push({ file, status: "ERROR" /* Error */, error });
-      console.error([error, filePath], "Error processing file %s", file.name);
-    }
-  }
-  parseDateFromFileName(filePath) {
-    const regex = /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/;
-    const match = regex.exec(filePath);
-    if (match) {
-      const [, year, month, day, hour, minute, second] = match;
-      return /* @__PURE__ */ new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
-    }
-    return null;
-  }
-  getNewFilename(file, date) {
-    const yyyy = date.getFullYear();
-    const MM = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    const hh = String(date.getHours()).padStart(2, "0");
-    const mm = String(date.getMinutes()).padStart(2, "0");
-    const ss = String(date.getSeconds()).padStart(2, "0");
-    const formattedDate = `${yyyy}${MM}${dd}_${hh}${mm}${ss}`;
-    const filenameSuffix = file.name.substring(formattedDate.length);
-    return `${formattedDate}${filenameSuffix}`;
-  }
-};
-
 // src/heic-to-jpeg-converter.ts
-var import_heic_convert = __toESM(require_heic_convert(), 1);
 import * as fs3 from "fs/promises";
-import { join as join2, basename, extname as extname2 } from "path";
+import { join as join4, basename, extname as extname2 } from "path";
 import trash from "trash";
-var logger3 = getLogger("heic-to-jpeg-converter");
-var HEICtoJpegConverter = class _HEICtoJpegConverter {
-  dryRun;
-  convertedPhotos = [];
-  failedPhotos = /* @__PURE__ */ new Map();
-  constructor(dryRun) {
-    this.dryRun = dryRun;
-  }
-  static async convertFolder(folderPath, dryRun = true) {
-    const converter = new _HEICtoJpegConverter(dryRun);
-    await converter.convertFolder(folderPath);
-    return { convertedPhotos: converter.convertedPhotos, failedPhotos: converter.failedPhotos };
-  }
-  async convertFolder(folderPath) {
-    logger3.info('Convert folder "%s"', folderPath);
-    const files = await fs3.readdir(folderPath, { withFileTypes: true });
-    for (const file of files) {
-      if (file.isDirectory()) {
-        await this.convertFolder(join2(folderPath, file.name));
-      } else if (file.isFile() && extname2(file.name).toLowerCase() === ".heic") {
-        await this.convertPhoto(file);
+var import_heic_convert, logger3, HEICtoJpegConverter;
+var init_heic_to_jpeg_converter = __esm({
+  async "src/heic-to-jpeg-converter.ts"() {
+    "use strict";
+    init_common();
+    await init_logger();
+    import_heic_convert = __toESM(require_heic_convert(), 1);
+    logger3 = getLogger("heic-to-jpeg-converter");
+    HEICtoJpegConverter = class _HEICtoJpegConverter {
+      dryRun;
+      convertedPhotos = [];
+      failedPhotos = /* @__PURE__ */ new Map();
+      constructor(dryRun) {
+        this.dryRun = dryRun;
       }
-    }
-  }
-  async convertPhoto(srcPhoto) {
-    let srcPhotoPath, outPhotoPath;
-    try {
-      srcPhotoPath = join2(srcPhoto.parentPath, srcPhoto.name);
-      outPhotoPath = join2(
-        srcPhoto.parentPath,
-        `${basename(srcPhoto.name, extname2(srcPhoto.name))}.jpeg`
-      );
-      logger3.info('Convert "%s"', srcPhoto.name);
-      const inputStream = await fs3.readFile(srcPhotoPath);
-      const outputStream = await (0, import_heic_convert.default)({
-        buffer: inputStream,
-        format: "JPEG",
-        quality: 1
-      });
-      await fs3.writeFile(outPhotoPath, Buffer.from(outputStream));
-      this.convertedPhotos.push(outPhotoPath);
-      if (this.dryRun) {
-        logger3.warn('Delete, for dry-run, "%s"', srcPhoto.name);
-        await trash(outPhotoPath);
-      } else {
-        logger3.info('Delete "%s"', srcPhoto.name);
-        await trash(srcPhotoPath);
+      static async convertFolder(folderPath, dryRun = true) {
+        const converter = new _HEICtoJpegConverter(dryRun);
+        await converter.convertFolder(folderPath);
+        return { convertedPhotos: converter.convertedPhotos, failedPhotos: converter.failedPhotos };
       }
-    } catch (error) {
-      logger3.error(error, 'Error converting "%s"', srcPhoto.name);
-      this.failedPhotos.set(srcPhoto.name, handleErrorUnknown(error));
-    }
+      async convertFolder(folderPath) {
+        logger3.info('Convert folder "%s"', folderPath);
+        const files = await fs3.readdir(folderPath, { withFileTypes: true });
+        for (const file of files) {
+          if (file.isDirectory()) {
+            await this.convertFolder(join4(folderPath, file.name));
+          } else if (file.isFile() && extname2(file.name).toLowerCase() === ".heic") {
+            await this.convertPhoto(file);
+          }
+        }
+      }
+      async convertPhoto(srcPhoto) {
+        let srcPhotoPath, outPhotoPath;
+        try {
+          srcPhotoPath = join4(srcPhoto.parentPath, srcPhoto.name);
+          outPhotoPath = join4(
+            srcPhoto.parentPath,
+            `${basename(srcPhoto.name, extname2(srcPhoto.name))}.jpeg`
+          );
+          logger3.info('Convert "%s"', srcPhoto.name);
+          const inputStream = await fs3.readFile(srcPhotoPath);
+          const outputStream = await (0, import_heic_convert.default)({
+            buffer: inputStream,
+            format: "JPEG",
+            quality: 1
+          });
+          await fs3.writeFile(outPhotoPath, Buffer.from(outputStream));
+          this.convertedPhotos.push(outPhotoPath);
+          if (this.dryRun) {
+            logger3.warn('Delete, for dry-run, "%s"', srcPhoto.name);
+            await trash(outPhotoPath);
+          } else {
+            logger3.info('Delete "%s"', srcPhoto.name);
+            await trash(srcPhotoPath);
+          }
+        } catch (error) {
+          logger3.error(error, 'Error converting "%s"', srcPhoto.name);
+          this.failedPhotos.set(srcPhoto.name, handleErrorUnknown(error));
+        }
+      }
+    };
   }
-};
+});
 
 // src/cmd-interface.ts
+var cmd_interface_exports = {};
+__export(cmd_interface_exports, {
+  runOneDriveFixerCmdUserInterface: () => runOneDriveFixerCmdUserInterface
+});
 import * as fs4 from "fs";
 import path2 from "path";
 import { tmpdir } from "os";
-var logger4 = getLogger("cmd-interface");
-var Options = /* @__PURE__ */ ((Options2) => {
-  Options2[Options2["FixFileNames"] = 0] = "FixFileNames";
-  Options2[Options2["ConvertHEICtoJPEG"] = 1] = "ConvertHEICtoJPEG";
-  Options2[Options2["Exit"] = 2] = "Exit";
-  return Options2;
-})(Options || {});
-var onedriveFixerDataFile = path2.join(tmpdir(), "onedrive-fixer-data.json");
 async function runOneDriveFixerCmdUserInterface() {
   try {
-    await new Promise((resolve2) => setTimeout(resolve2, 400));
-    let option = await getUserChoice();
+    let option;
     while (option !== 2 /* Exit */) {
-      const folderPath = await promptForFolderPath();
-      const isDryRun = await esm_default4({ message: "Dry-run?", default: true });
-      await executeFixOption(option, folderPath, isDryRun);
-      await new Promise((resolve2) => setTimeout(resolve2, 800));
       option = await getUserChoice();
+      switch (option) {
+        case 0 /* FixFileNames */:
+          await runOneDriveNameDateFixer();
+          break;
+        case 1 /* ConvertHEICtoJPEG */:
+          await runHEICtoJPEGConverter();
+          break;
+      }
     }
   } catch (error) {
     logger4.error("Error:", error);
-  }
-}
-async function executeFixOption(option, folderPath, isDryRun) {
-  if (option === 0 /* FixFileNames */) {
-    await runOneDriveNameDateFixer(folderPath, isDryRun);
-  } else {
-    await runHEICtoJPEGConverter(folderPath, isDryRun);
   }
 }
 async function getUserChoice() {
@@ -20299,27 +20728,47 @@ async function promptForFolderPath() {
   writeData(data, folderPath);
   return folderPath;
 }
-async function runOneDriveNameDateFixer(filePath, isDryRun) {
+async function runOneDriveNameDateFixer() {
   try {
-    logger4.info(`Run fix media files names in: "${filePath}"`);
-    const handledFiles = await OneDriveNameDateFixer.fixFileNames(filePath, isDryRun);
-    const { updated, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
-    logger4.info(
+    const folderPath = await promptForFolderPath();
+    logger4.info(`Run fix media files names in: "${folderPath}"`);
+    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, (folder, files) => {
+      console.log(`Scanned folder: ${folder} - ${files.length} files`);
+    });
+    const { updateRequired, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
+    console.log(
       `
--------------
 Finished running OneDrive media file name/date fixer: 
-%d media files processed
-%d updated
-%d no update required
+%d media files found
+%d require fixing
+%d already correct
 %d not iPhone
-%d other
--------------`,
+%d other`,
       handledFiles.length,
-      updated,
+      updateRequired,
       noUpdateRequired,
       skippedNotIPhone,
-      handledFiles.length - updated - noUpdateRequired - skippedNotIPhone
+      handledFiles.length - updateRequired - noUpdateRequired - skippedNotIPhone
     );
+    if (updateRequired < 1) {
+      console.log("No files to fix");
+      return;
+    }
+    const { run, dryRun } = await getRunConfirmationChoice();
+    if (!run) {
+      return;
+    }
+    const fixProgCallback = (index, total, file) => {
+      console.log(`Updated file ${index} of ${total}: ${file.file.name} --> ${file.newName}`);
+    };
+    if (dryRun) {
+      await OneDriveNameDateFixer.fix(handledFiles.slice(), dryRun, fixProgCallback);
+      const runReal = await esm_default4({ message: "Run the fix for real?", default: false });
+      if (!runReal) {
+        return;
+      }
+    }
+    await OneDriveNameDateFixer.fix(handledFiles, dryRun, fixProgCallback);
   } catch (error) {
     logger4.fatal(error, "Failed running OneDrive name date fixer");
   }
@@ -20329,7 +20778,7 @@ function getCounts(handledFiles) {
   let noUpdateRequired = 0;
   let skippedNotIPhone = 0;
   for (const file of handledFiles) {
-    if (file.status === "UPDATED" /* Updated */) {
+    if (file.status === "UPDATE_REQUIRED" /* UpdateRequired */) {
       updated++;
     } else if (file.status === "NO_UPDATE_REQUIRED" /* NoUpdateRequired */) {
       noUpdateRequired++;
@@ -20337,14 +20786,16 @@ function getCounts(handledFiles) {
       skippedNotIPhone++;
     }
   }
-  return { updated, noUpdateRequired, skippedNotIPhone };
+  return { updateRequired: updated, noUpdateRequired, skippedNotIPhone };
 }
-async function runHEICtoJPEGConverter(folderPath, isDryRun) {
+async function runHEICtoJPEGConverter() {
+  const folderPath = await promptForFolderPath();
+  const { run, dryRun } = await getRunConfirmationChoice();
+  if (!run) {
+    return;
+  }
   logger4.info(`Run fix media files names in: "${folderPath}"`);
-  const { convertedPhotos, failedPhotos } = await HEICtoJpegConverter.convertFolder(
-    folderPath,
-    isDryRun
-  );
+  const { convertedPhotos, failedPhotos } = await HEICtoJpegConverter.convertFolder(folderPath, dryRun);
   logger4.info(
     `
 -------------
@@ -20369,13 +20820,51 @@ function writeData(data, folderPath) {
   data.lastUsedPaths = data.lastUsedPaths.slice(0, 3);
   fs4.writeFileSync(onedriveFixerDataFile, JSON.stringify(data, null, 2));
 }
+async function getRunConfirmationChoice() {
+  return await esm_default11({
+    message: "Run?:",
+    choices: [
+      { name: "Yes", value: { run: true, dryRun: false } },
+      { name: "Dry-Run", value: { run: true, dryRun: true } },
+      { name: "Cancel", value: { run: false, dryRun: false } }
+    ]
+  });
+}
+var logger4, Options, onedriveFixerDataFile;
+var init_cmd_interface = __esm({
+  async "src/cmd-interface.ts"() {
+    "use strict";
+    init_esm13();
+    await init_logger();
+    await init_onedrive_name_date_fixer();
+    init_entities();
+    await init_heic_to_jpeg_converter();
+    logger4 = getLogger("cmd-interface");
+    Options = /* @__PURE__ */ ((Options2) => {
+      Options2[Options2["FixFileNames"] = 0] = "FixFileNames";
+      Options2[Options2["ConvertHEICtoJPEG"] = 1] = "ConvertHEICtoJPEG";
+      Options2[Options2["Exit"] = 2] = "Exit";
+      return Options2;
+    })(Options || {});
+    onedriveFixerDataFile = path2.join(tmpdir(), "onedrive-fixer-data.json");
+  }
+});
 
 // src/main.ts
+init_logging_config();
+overrideDefaultLoggingConfig({
+  console: {
+    level: LogLevel.warn
+  }
+});
 async function main() {
+  const logging = await init_logger().then(() => logger_exports);
+  const cmdInterface = await init_cmd_interface().then(() => cmd_interface_exports);
   try {
-    await runOneDriveFixerCmdUserInterface();
+    logging.logger.info("Starting OneDrive Fixer");
+    await cmdInterface.runOneDriveFixerCmdUserInterface();
   } catch (error) {
-    logger.fatal(error, "Exception in main");
+    logging.logger.fatal(error, "Exception in main");
   }
 }
 await main();

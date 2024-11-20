@@ -54,7 +54,6 @@ function getNodeModules(buildDir) {
     dependencies: {
       pino: '^9.5.0',
       trash: '^6.0.0',
-      'pino-pretty': '^12.0.0',
       'exiftool-vendored': '^29.0.0',
     },
   };
@@ -62,13 +61,9 @@ function getNodeModules(buildDir) {
   fs.writeFileSync(packageJsonPath, JSON.stringify(nodeModulesPackageJson, null, 2));
 
   console.debug(`Run npm install..`);
-  child_process.execFileSync(
-    'npm.cmd',
-    ['install', buildDir, '--prefix', buildDir, '--no-bin-links'],
-    {
-      shell: true,
-    },
-  );
+  child_process.execFileSync('npm.cmd', ['install', buildDir, '--prefix', buildDir, '--no-bin-links'], {
+    shell: true,
+  });
 
   console.debug('Clean-lean node_modules..');
   const [rmFoldersCount, rmFilesCount] = deleteNonProdNodeModulesFiles(
@@ -109,10 +104,7 @@ function deleteNonProdNodeModulesFiles(folder, namesToDelete, extensionsToDelete
       if (file.isSymbolicLink()) {
         fs.unlinkSync(fullPath);
         rmFilesCount++;
-      } else if (
-        namesToDelete.includes(lcName) ||
-        extensionsToDelete.includes(path.extname(lcName))
-      ) {
+      } else if (namesToDelete.includes(lcName) || extensionsToDelete.includes(path.extname(lcName))) {
         if (file.isDirectory()) {
           fs.rmSync(fullPath, { recursive: true, force: true });
           rmFoldersCount++;
