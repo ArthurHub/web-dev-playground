@@ -26,7 +26,8 @@ export function getDateIgnoreTimezone(dateString: string | undefined): Date {
   }
 
   // if timezone is present, remove it
-  const timezoneIdx = dateString.lastIndexOf('+');
+  let timezoneIdx = dateString.lastIndexOf('+');
+  timezoneIdx = timezoneIdx !== -1 ? timezoneIdx : dateString.lastIndexOf('-');
   dateString = timezoneIdx === -1 ? dateString : dateString.substring(0, timezoneIdx);
 
   // this will create the Date adjusted to the local timezone
