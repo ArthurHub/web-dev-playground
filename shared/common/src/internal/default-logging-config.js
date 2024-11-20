@@ -10,7 +10,7 @@ if (!fs.existsSync(logDir)) {
 
 const logLevel = process.env.LOG_LEVEL ?? 'info';
 
-export const config = {
+export default {
   pino: {
     level: logLevel,
     transport: {

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // Therefore those skilled at the unorthodox
 // are infinite as heaven and earth,
 // inexhaustible as the great rivers.
@@ -17,27 +15,9 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-parameters */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { existsSync } from 'fs';
-import { pathToFileURL } from 'url';
-import { join } from 'path';
+import { getLoggingConfig, setLoggingConfigInitialized } from './internal/logging-config-internal.js';
+import { LogLevel } from './logging-config.js';
 import pino from 'pino';
-
-enum LogLevel {
-  off = 'off',
-  trace = 'trace',
-  debug = 'debug',
-  info = 'info',
-  warn = 'warn',
-  error = 'error',
-  fatal = 'fatal',
-}
-
-interface LogConfig {
-  console?: {
-    level: LogLevel;
-  };
-  pino?: unknown;
-}
 
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void;
@@ -206,30 +186,32 @@ class PinoProxyLogger implements Logger {
 }
 
 /**
- * Init logging from 'logger-config.js' file in working directory or from default logger config file.
- * TODO: can I improve typing?
+ * Initialize logging with optional override configuration.
+ * Must be called before any log usage.
+ * Order of logging config:
+ * 1. Use "logging-config.js" if found in working directory.
+ * 2. Use override default config if set.
+ * 3. Load default config in "./logging-config.js" file.
+ *
+ * @param overrideDefault: override default logging configuration
  */
 async function initLogging(): Promise<Logger> {
-  // dynamic load of config file in working directory
-  const LOGGER_CONFIG_FILENAME = 'logger-config.js';
-  const cwdConfigFilePath = pathToFileURL(join(process.cwd(), LOGGER_CONFIG_FILENAME));
-  const logConfigModule = existsSync(cwdConfigFilePath)
-    ? await import(cwdConfigFilePath.href)
-    : await import(`./${LOGGER_CONFIG_FILENAME}`);
-
-  const logConfig = logConfigModule.config as LogConfig;
+  const logConfig = await getLoggingConfig();
+  let logger: Logger;
   if (logConfig.pino) {
-    return new PinoProxyLogger(pino.default(logConfig.pino as pino.LoggerOptions));
+    logger = new PinoProxyLogger(pino.default(logConfig.pino as pino.LoggerOptions));
   } else {
     // if console is not specified create a no-op logger
-    return new ConsoleLogger(logConfig.console?.level ?? LogLevel.off);
+    logger = new ConsoleLogger(logConfig.console?.level ?? LogLevel.off);
   }
+  setLoggingConfigInitialized();
+  return logger;
 }
 
-/** Default global logger */
+/** Top level logger */
 export const logger: Logger = await initLogging();
 
-/** Child logger with specific name and potentially custom properties */
+/** Logger with specific name and potentially custom properties */
 export function getLogger(name: string): Logger {
   return logger.child(name);
 }

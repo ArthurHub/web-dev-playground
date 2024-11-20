@@ -11,15 +11,22 @@
 //
 // ArthurHub, 2024
 
-import { logger } from 'common/logger.js';
-import { runOneDriveFixerCmdUserInterface } from './cmd-interface.js';
+import { LogLevel, overrideDefaultLoggingConfig } from 'common/logging-config.js';
+overrideDefaultLoggingConfig({
+  console: {
+    level: LogLevel.warn,
+  },
+});
 
 async function main(): Promise<void> {
+  // must be dynamic import for logging default override to work
+  const logging = await import('common/logger.js');
+  const cmdInterface = await import('./cmd-interface.js');
   try {
-    logger.info('Starting OneDrive Fixer');
-    await runOneDriveFixerCmdUserInterface();
+    logging.logger.info('Starting OneDrive Fixer');
+    await cmdInterface.runOneDriveFixerCmdUserInterface();
   } catch (error) {
-    logger.fatal(error, 'Exception in main');
+    logging.logger.fatal(error, 'Exception in main');
   }
 }
 
