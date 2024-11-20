@@ -108,6 +108,16 @@ interface Logger {
   trace: LogFn;
 }
 
+const LogLevelPriority: Record<LogLevel, number> = {
+  [LogLevel.trace]: 10,
+  [LogLevel.debug]: 20,
+  [LogLevel.info]: 30,
+  [LogLevel.warn]: 40,
+  [LogLevel.error]: 50,
+  [LogLevel.fatal]: 60,
+  [LogLevel.off]: 0,
+};
+
 class ConsoleLogger implements Logger {
   readonly level: LogLevel;
 
@@ -120,27 +130,27 @@ class ConsoleLogger implements Logger {
   }
 
   public trace: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (this.level >= LogLevel.trace) console.trace(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] >= LogLevelPriority.trace) console.trace(arg1, arg2, ...args);
   };
 
   public debug: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (this.level >= LogLevel.debug) console.debug(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] >= LogLevelPriority.debug) console.debug(arg1, arg2, ...args);
   };
 
   public info: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (this.level >= LogLevel.info) console.log(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] >= LogLevelPriority.info) console.log(arg1, arg2, ...args);
   };
 
   public warn: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (this.level >= LogLevel.warn) console.warn(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] >= LogLevelPriority.warn) console.warn(arg1, arg2, ...args);
   };
 
   public error: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (this.level >= LogLevel.error) console.error(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] >= LogLevelPriority.error) console.error(arg1, arg2, ...args);
   };
 
   public fatal: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (this.level >= LogLevel.fatal) console.error(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] >= LogLevelPriority.fatal) console.error(arg1, arg2, ...args);
   };
 }
 
