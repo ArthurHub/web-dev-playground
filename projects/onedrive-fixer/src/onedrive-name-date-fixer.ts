@@ -185,7 +185,6 @@ export namespace OneDriveNameDateFixer {
 
       if (dryRun) {
         logger.warn('Renaming in dry-run mode: "%s" --> "%s"', file.file.name, file.newName);
-        file.status = OneDriveFileToFixStatus.UpdateComplete;
         return;
       }
 

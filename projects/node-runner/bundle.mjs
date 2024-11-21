@@ -240,27 +240,27 @@ var init_logger = __esm({
         return this;
       }
       trace = (arg1, arg2, ...args) => {
-        if (LogLevelPriority[this.level] >= LogLevelPriority.trace)
+        if (LogLevelPriority[this.level] <= LogLevelPriority.trace)
           console.trace(arg1, arg2, ...args);
       };
       debug = (arg1, arg2, ...args) => {
-        if (LogLevelPriority[this.level] >= LogLevelPriority.debug)
+        if (LogLevelPriority[this.level] <= LogLevelPriority.debug)
           console.debug(arg1, arg2, ...args);
       };
       info = (arg1, arg2, ...args) => {
-        if (LogLevelPriority[this.level] >= LogLevelPriority.info)
+        if (LogLevelPriority[this.level] <= LogLevelPriority.info)
           console.log(arg1, arg2, ...args);
       };
       warn = (arg1, arg2, ...args) => {
-        if (LogLevelPriority[this.level] >= LogLevelPriority.warn)
+        if (LogLevelPriority[this.level] <= LogLevelPriority.warn)
           console.warn(arg1, arg2, ...args);
       };
       error = (arg1, arg2, ...args) => {
-        if (LogLevelPriority[this.level] >= LogLevelPriority.error)
+        if (LogLevelPriority[this.level] <= LogLevelPriority.error)
           console.error(arg1, arg2, ...args);
       };
       fatal = (arg1, arg2, ...args) => {
-        if (LogLevelPriority[this.level] >= LogLevelPriority.fatal)
+        if (LogLevelPriority[this.level] <= LogLevelPriority.fatal)
           console.error(arg1, arg2, ...args);
       };
     };
@@ -1317,7 +1317,7 @@ var require_conversions = __commonJS({
     for (const key of Object.keys(cssKeywords)) {
       reverseKeywords[cssKeywords[key]] = key;
     }
-    var convert2 = {
+    var convert = {
       rgb: { channels: 3, labels: "rgb" },
       hsl: { channels: 3, labels: "hsl" },
       hsv: { channels: 3, labels: "hsv" },
@@ -1334,24 +1334,24 @@ var require_conversions = __commonJS({
       apple: { channels: 3, labels: ["r16", "g16", "b16"] },
       gray: { channels: 1, labels: ["gray"] }
     };
-    module.exports = convert2;
-    for (const model of Object.keys(convert2)) {
-      if (!("channels" in convert2[model])) {
+    module.exports = convert;
+    for (const model of Object.keys(convert)) {
+      if (!("channels" in convert[model])) {
         throw new Error("missing channels property: " + model);
       }
-      if (!("labels" in convert2[model])) {
+      if (!("labels" in convert[model])) {
         throw new Error("missing channel labels property: " + model);
       }
-      if (convert2[model].labels.length !== convert2[model].channels) {
+      if (convert[model].labels.length !== convert[model].channels) {
         throw new Error("channel and label counts mismatch: " + model);
       }
-      const { channels, labels } = convert2[model];
-      delete convert2[model].channels;
-      delete convert2[model].labels;
-      Object.defineProperty(convert2[model], "channels", { value: channels });
-      Object.defineProperty(convert2[model], "labels", { value: labels });
+      const { channels, labels } = convert[model];
+      delete convert[model].channels;
+      delete convert[model].labels;
+      Object.defineProperty(convert[model], "channels", { value: channels });
+      Object.defineProperty(convert[model], "labels", { value: labels });
     }
-    convert2.rgb.hsl = function(rgb) {
+    convert.rgb.hsl = function(rgb) {
       const r = rgb[0] / 255;
       const g = rgb[1] / 255;
       const b = rgb[2] / 255;
@@ -1383,7 +1383,7 @@ var require_conversions = __commonJS({
       }
       return [h, s * 100, l * 100];
     };
-    convert2.rgb.hsv = function(rgb) {
+    convert.rgb.hsv = function(rgb) {
       let rdif;
       let gdif;
       let bdif;
@@ -1424,16 +1424,16 @@ var require_conversions = __commonJS({
         v * 100
       ];
     };
-    convert2.rgb.hwb = function(rgb) {
+    convert.rgb.hwb = function(rgb) {
       const r = rgb[0];
       const g = rgb[1];
       let b = rgb[2];
-      const h = convert2.rgb.hsl(rgb)[0];
+      const h = convert.rgb.hsl(rgb)[0];
       const w = 1 / 255 * Math.min(r, Math.min(g, b));
       b = 1 - 1 / 255 * Math.max(r, Math.max(g, b));
       return [h, w * 100, b * 100];
     };
-    convert2.rgb.cmyk = function(rgb) {
+    convert.rgb.cmyk = function(rgb) {
       const r = rgb[0] / 255;
       const g = rgb[1] / 255;
       const b = rgb[2] / 255;
@@ -1446,7 +1446,7 @@ var require_conversions = __commonJS({
     function comparativeDistance(x, y) {
       return (x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2 + (x[2] - y[2]) ** 2;
     }
-    convert2.rgb.keyword = function(rgb) {
+    convert.rgb.keyword = function(rgb) {
       const reversed = reverseKeywords[rgb];
       if (reversed) {
         return reversed;
@@ -1463,10 +1463,10 @@ var require_conversions = __commonJS({
       }
       return currentClosestKeyword;
     };
-    convert2.keyword.rgb = function(keyword) {
+    convert.keyword.rgb = function(keyword) {
       return cssKeywords[keyword];
     };
-    convert2.rgb.xyz = function(rgb) {
+    convert.rgb.xyz = function(rgb) {
       let r = rgb[0] / 255;
       let g = rgb[1] / 255;
       let b = rgb[2] / 255;
@@ -1478,8 +1478,8 @@ var require_conversions = __commonJS({
       const z = r * 0.0193 + g * 0.1192 + b * 0.9505;
       return [x * 100, y * 100, z * 100];
     };
-    convert2.rgb.lab = function(rgb) {
-      const xyz = convert2.rgb.xyz(rgb);
+    convert.rgb.lab = function(rgb) {
+      const xyz = convert.rgb.xyz(rgb);
       let x = xyz[0];
       let y = xyz[1];
       let z = xyz[2];
@@ -1494,7 +1494,7 @@ var require_conversions = __commonJS({
       const b = 200 * (y - z);
       return [l, a, b];
     };
-    convert2.hsl.rgb = function(hsl) {
+    convert.hsl.rgb = function(hsl) {
       const h = hsl[0] / 360;
       const s = hsl[1] / 100;
       const l = hsl[2] / 100;
@@ -1533,7 +1533,7 @@ var require_conversions = __commonJS({
       }
       return rgb;
     };
-    convert2.hsl.hsv = function(hsl) {
+    convert.hsl.hsv = function(hsl) {
       const h = hsl[0];
       let s = hsl[1] / 100;
       let l = hsl[2] / 100;
@@ -1546,7 +1546,7 @@ var require_conversions = __commonJS({
       const sv = l === 0 ? 2 * smin / (lmin + smin) : 2 * s / (l + s);
       return [h, sv * 100, v * 100];
     };
-    convert2.hsv.rgb = function(hsv) {
+    convert.hsv.rgb = function(hsv) {
       const h = hsv[0] / 60;
       const s = hsv[1] / 100;
       let v = hsv[2] / 100;
@@ -1571,7 +1571,7 @@ var require_conversions = __commonJS({
           return [v, p, q];
       }
     };
-    convert2.hsv.hsl = function(hsv) {
+    convert.hsv.hsl = function(hsv) {
       const h = hsv[0];
       const s = hsv[1] / 100;
       const v = hsv[2] / 100;
@@ -1586,7 +1586,7 @@ var require_conversions = __commonJS({
       l /= 2;
       return [h, sl * 100, l * 100];
     };
-    convert2.hwb.rgb = function(hwb) {
+    convert.hwb.rgb = function(hwb) {
       const h = hwb[0] / 360;
       let wh = hwb[1] / 100;
       let bl = hwb[2] / 100;
@@ -1642,7 +1642,7 @@ var require_conversions = __commonJS({
       }
       return [r * 255, g * 255, b * 255];
     };
-    convert2.cmyk.rgb = function(cmyk) {
+    convert.cmyk.rgb = function(cmyk) {
       const c = cmyk[0] / 100;
       const m = cmyk[1] / 100;
       const y = cmyk[2] / 100;
@@ -1652,7 +1652,7 @@ var require_conversions = __commonJS({
       const b = 1 - Math.min(1, y * (1 - k) + k);
       return [r * 255, g * 255, b * 255];
     };
-    convert2.xyz.rgb = function(xyz) {
+    convert.xyz.rgb = function(xyz) {
       const x = xyz[0] / 100;
       const y = xyz[1] / 100;
       const z = xyz[2] / 100;
@@ -1670,7 +1670,7 @@ var require_conversions = __commonJS({
       b = Math.min(Math.max(0, b), 1);
       return [r * 255, g * 255, b * 255];
     };
-    convert2.xyz.lab = function(xyz) {
+    convert.xyz.lab = function(xyz) {
       let x = xyz[0];
       let y = xyz[1];
       let z = xyz[2];
@@ -1685,7 +1685,7 @@ var require_conversions = __commonJS({
       const b = 200 * (y - z);
       return [l, a, b];
     };
-    convert2.lab.xyz = function(lab) {
+    convert.lab.xyz = function(lab) {
       const l = lab[0];
       const a = lab[1];
       const b = lab[2];
@@ -1706,7 +1706,7 @@ var require_conversions = __commonJS({
       z *= 108.883;
       return [x, y, z];
     };
-    convert2.lab.lch = function(lab) {
+    convert.lab.lch = function(lab) {
       const l = lab[0];
       const a = lab[1];
       const b = lab[2];
@@ -1719,7 +1719,7 @@ var require_conversions = __commonJS({
       const c = Math.sqrt(a * a + b * b);
       return [l, c, h];
     };
-    convert2.lch.lab = function(lch) {
+    convert.lch.lab = function(lch) {
       const l = lch[0];
       const c = lch[1];
       const h = lch[2];
@@ -1728,9 +1728,9 @@ var require_conversions = __commonJS({
       const b = c * Math.sin(hr);
       return [l, a, b];
     };
-    convert2.rgb.ansi16 = function(args, saturation = null) {
+    convert.rgb.ansi16 = function(args, saturation = null) {
       const [r, g, b] = args;
-      let value = saturation === null ? convert2.rgb.hsv(args)[2] : saturation;
+      let value = saturation === null ? convert.rgb.hsv(args)[2] : saturation;
       value = Math.round(value / 50);
       if (value === 0) {
         return 30;
@@ -1741,10 +1741,10 @@ var require_conversions = __commonJS({
       }
       return ansi;
     };
-    convert2.hsv.ansi16 = function(args) {
-      return convert2.rgb.ansi16(convert2.hsv.rgb(args), args[2]);
+    convert.hsv.ansi16 = function(args) {
+      return convert.rgb.ansi16(convert.hsv.rgb(args), args[2]);
     };
-    convert2.rgb.ansi256 = function(args) {
+    convert.rgb.ansi256 = function(args) {
       const r = args[0];
       const g = args[1];
       const b = args[2];
@@ -1760,7 +1760,7 @@ var require_conversions = __commonJS({
       const ansi = 16 + 36 * Math.round(r / 255 * 5) + 6 * Math.round(g / 255 * 5) + Math.round(b / 255 * 5);
       return ansi;
     };
-    convert2.ansi16.rgb = function(args) {
+    convert.ansi16.rgb = function(args) {
       let color = args % 10;
       if (color === 0 || color === 7) {
         if (args > 50) {
@@ -1775,7 +1775,7 @@ var require_conversions = __commonJS({
       const b = (color >> 2 & 1) * mult * 255;
       return [r, g, b];
     };
-    convert2.ansi256.rgb = function(args) {
+    convert.ansi256.rgb = function(args) {
       if (args >= 232) {
         const c = (args - 232) * 10 + 8;
         return [c, c, c];
@@ -1787,12 +1787,12 @@ var require_conversions = __commonJS({
       const b = rem % 6 / 5 * 255;
       return [r, g, b];
     };
-    convert2.rgb.hex = function(args) {
+    convert.rgb.hex = function(args) {
       const integer = ((Math.round(args[0]) & 255) << 16) + ((Math.round(args[1]) & 255) << 8) + (Math.round(args[2]) & 255);
       const string = integer.toString(16).toUpperCase();
       return "000000".substring(string.length) + string;
     };
-    convert2.hex.rgb = function(args) {
+    convert.hex.rgb = function(args) {
       const match = args.toString(16).match(/[a-f0-9]{6}|[a-f0-9]{3}/i);
       if (!match) {
         return [0, 0, 0];
@@ -1809,7 +1809,7 @@ var require_conversions = __commonJS({
       const b = integer & 255;
       return [r, g, b];
     };
-    convert2.rgb.hcg = function(rgb) {
+    convert.rgb.hcg = function(rgb) {
       const r = rgb[0] / 255;
       const g = rgb[1] / 255;
       const b = rgb[2] / 255;
@@ -1836,7 +1836,7 @@ var require_conversions = __commonJS({
       hue %= 1;
       return [hue * 360, chroma * 100, grayscale * 100];
     };
-    convert2.hsl.hcg = function(hsl) {
+    convert.hsl.hcg = function(hsl) {
       const s = hsl[1] / 100;
       const l = hsl[2] / 100;
       const c = l < 0.5 ? 2 * s * l : 2 * s * (1 - l);
@@ -1846,7 +1846,7 @@ var require_conversions = __commonJS({
       }
       return [hsl[0], c * 100, f * 100];
     };
-    convert2.hsv.hcg = function(hsv) {
+    convert.hsv.hcg = function(hsv) {
       const s = hsv[1] / 100;
       const v = hsv[2] / 100;
       const c = s * v;
@@ -1856,7 +1856,7 @@ var require_conversions = __commonJS({
       }
       return [hsv[0], c * 100, f * 100];
     };
-    convert2.hcg.rgb = function(hcg) {
+    convert.hcg.rgb = function(hcg) {
       const h = hcg[0] / 360;
       const c = hcg[1] / 100;
       const g = hcg[2] / 100;
@@ -1906,7 +1906,7 @@ var require_conversions = __commonJS({
         (c * pure[2] + mg) * 255
       ];
     };
-    convert2.hcg.hsv = function(hcg) {
+    convert.hcg.hsv = function(hcg) {
       const c = hcg[1] / 100;
       const g = hcg[2] / 100;
       const v = c + g * (1 - c);
@@ -1916,7 +1916,7 @@ var require_conversions = __commonJS({
       }
       return [hcg[0], f * 100, v * 100];
     };
-    convert2.hcg.hsl = function(hcg) {
+    convert.hcg.hsl = function(hcg) {
       const c = hcg[1] / 100;
       const g = hcg[2] / 100;
       const l = g * (1 - c) + 0.5 * c;
@@ -1928,13 +1928,13 @@ var require_conversions = __commonJS({
       }
       return [hcg[0], s * 100, l * 100];
     };
-    convert2.hcg.hwb = function(hcg) {
+    convert.hcg.hwb = function(hcg) {
       const c = hcg[1] / 100;
       const g = hcg[2] / 100;
       const v = c + g * (1 - c);
       return [hcg[0], (v - c) * 100, (1 - v) * 100];
     };
-    convert2.hwb.hcg = function(hwb) {
+    convert.hwb.hcg = function(hwb) {
       const w = hwb[1] / 100;
       const b = hwb[2] / 100;
       const v = 1 - b;
@@ -1945,35 +1945,35 @@ var require_conversions = __commonJS({
       }
       return [hwb[0], c * 100, g * 100];
     };
-    convert2.apple.rgb = function(apple) {
+    convert.apple.rgb = function(apple) {
       return [apple[0] / 65535 * 255, apple[1] / 65535 * 255, apple[2] / 65535 * 255];
     };
-    convert2.rgb.apple = function(rgb) {
+    convert.rgb.apple = function(rgb) {
       return [rgb[0] / 255 * 65535, rgb[1] / 255 * 65535, rgb[2] / 255 * 65535];
     };
-    convert2.gray.rgb = function(args) {
+    convert.gray.rgb = function(args) {
       return [args[0] / 100 * 255, args[0] / 100 * 255, args[0] / 100 * 255];
     };
-    convert2.gray.hsl = function(args) {
+    convert.gray.hsl = function(args) {
       return [0, 0, args[0]];
     };
-    convert2.gray.hsv = convert2.gray.hsl;
-    convert2.gray.hwb = function(gray) {
+    convert.gray.hsv = convert.gray.hsl;
+    convert.gray.hwb = function(gray) {
       return [0, 100, gray[0]];
     };
-    convert2.gray.cmyk = function(gray) {
+    convert.gray.cmyk = function(gray) {
       return [0, 0, 0, gray[0]];
     };
-    convert2.gray.lab = function(gray) {
+    convert.gray.lab = function(gray) {
       return [gray[0], 0, 0];
     };
-    convert2.gray.hex = function(gray) {
+    convert.gray.hex = function(gray) {
       const val = Math.round(gray[0] / 100 * 255) & 255;
       const integer = (val << 16) + (val << 8) + val;
       const string = integer.toString(16).toUpperCase();
       return "000000".substring(string.length) + string;
     };
-    convert2.rgb.gray = function(rgb) {
+    convert.rgb.gray = function(rgb) {
       const val = (rgb[0] + rgb[1] + rgb[2]) / 3;
       return [val / 255 * 100];
     };
@@ -2055,7 +2055,7 @@ var require_color_convert = __commonJS({
   "../../node_modules/color-convert/index.js"(exports, module) {
     var conversions = require_conversions();
     var route = require_route();
-    var convert2 = {};
+    var convert = {};
     var models = Object.keys(conversions);
     function wrapRaw(fn) {
       const wrappedFn = function(...args) {
@@ -2096,18 +2096,18 @@ var require_color_convert = __commonJS({
       return wrappedFn;
     }
     models.forEach((fromModel) => {
-      convert2[fromModel] = {};
-      Object.defineProperty(convert2[fromModel], "channels", { value: conversions[fromModel].channels });
-      Object.defineProperty(convert2[fromModel], "labels", { value: conversions[fromModel].labels });
+      convert[fromModel] = {};
+      Object.defineProperty(convert[fromModel], "channels", { value: conversions[fromModel].channels });
+      Object.defineProperty(convert[fromModel], "labels", { value: conversions[fromModel].labels });
       const routes = route(fromModel);
       const routeModels = Object.keys(routes);
       routeModels.forEach((toModel) => {
         const fn = routes[toModel];
-        convert2[fromModel][toModel] = wrapRounded(fn);
-        convert2[fromModel][toModel].raw = wrapRaw(fn);
+        convert[fromModel][toModel] = wrapRounded(fn);
+        convert[fromModel][toModel].raw = wrapRaw(fn);
       });
     });
-    module.exports = convert2;
+    module.exports = convert;
   }
 });
 
@@ -13792,8 +13792,9 @@ function getDateIgnoreTimezone(dateString) {
   if (!dateString) {
     throw new Error("Date string is undefined");
   }
-  const timezoneIdx = dateString.lastIndexOf("+");
-  dateString = timezoneIdx === -1 ? dateString : dateString.substring(0, timezoneIdx);
+  let timezoneIdx = dateString.lastIndexOf("+");
+  timezoneIdx = timezoneIdx !== -1 ? timezoneIdx : dateString.lastIndexOf("-");
+  dateString = timezoneIdx > 10 ? dateString.substring(0, timezoneIdx) : dateString;
   return new Date(dateString);
 }
 function handleErrorUnknown(ex) {
@@ -13937,7 +13938,6 @@ var init_onedrive_name_date_fixer = __esm({
           }
           if (dryRun) {
             logger2.warn('Renaming in dry-run mode: "%s" --> "%s"', file.file.name, file.newName);
-            file.status = "UPDATE_COMPLETE" /* UpdateComplete */;
             return;
           }
           logger2.trace([file.file.name, file.newName], "Updating file name");
@@ -20564,7 +20564,7 @@ var require_lib4 = __commonJS({
           quality
         });
       };
-      const convert2 = async ({ buffer, format, quality, all }) => {
+      const convert = async ({ buffer, format, quality, all }) => {
         if (!encode[format]) {
           throw new Error(`output format needs to be one of [${Object.keys(encode)}]`);
         }
@@ -20584,8 +20584,8 @@ var require_lib4 = __commonJS({
         });
       };
       return {
-        one: async ({ buffer, format, quality = 0.92 }) => await convert2({ buffer, format, quality, all: false }),
-        all: async ({ buffer, format, quality = 0.92 }) => await convert2({ buffer, format, quality, all: true })
+        one: async ({ buffer, format, quality = 0.92 }) => await convert({ buffer, format, quality, all: false }),
+        all: async ({ buffer, format, quality = 0.92 }) => await convert({ buffer, format, quality, all: true })
       };
     };
   }
@@ -20604,7 +20604,7 @@ var require_heic_convert = __commonJS({
 
 // src/heic-to-jpeg-converter.ts
 import * as fs3 from "fs/promises";
-import { join as join4, basename, extname as extname2 } from "path";
+import { join as join4, basename, extname as extname2, dirname } from "path";
 import trash from "trash";
 var import_heic_convert, logger3, HEICtoJpegConverter;
 var init_heic_to_jpeg_converter = __esm({
@@ -20614,59 +20614,61 @@ var init_heic_to_jpeg_converter = __esm({
     await init_logger();
     import_heic_convert = __toESM(require_heic_convert(), 1);
     logger3 = getLogger("heic-to-jpeg-converter");
-    HEICtoJpegConverter = class _HEICtoJpegConverter {
-      dryRun;
-      convertedPhotos = [];
-      failedPhotos = /* @__PURE__ */ new Map();
-      constructor(dryRun) {
-        this.dryRun = dryRun;
-      }
-      static async convertFolder(folderPath, dryRun = true) {
-        const converter = new _HEICtoJpegConverter(dryRun);
-        await converter.convertFolder(folderPath);
-        return { convertedPhotos: converter.convertedPhotos, failedPhotos: converter.failedPhotos };
-      }
-      async convertFolder(folderPath) {
-        logger3.info('Convert folder "%s"', folderPath);
+    ((HEICtoJpegConverter2) => {
+      async function scan(folderPath) {
+        logger3.debug('Scanning folder "%s"', folderPath);
+        const heicPhotos = [];
         const files = await fs3.readdir(folderPath, { withFileTypes: true });
         for (const file of files) {
+          const filePath = join4(folderPath, file.name);
           if (file.isDirectory()) {
-            await this.convertFolder(join4(folderPath, file.name));
-          } else if (file.isFile() && extname2(file.name).toLowerCase() === ".heic") {
-            await this.convertPhoto(file);
+            const subFolder = await scan(filePath);
+            heicPhotos.push(...subFolder);
+          } else if (isHeicPhoto(file)) {
+            heicPhotos.push(file);
+          } else {
+            logger3.debug('Ignore "%s"', file.name);
           }
         }
+        return heicPhotos;
       }
-      async convertPhoto(srcPhoto) {
+      HEICtoJpegConverter2.scan = scan;
+      function isHeicPhoto(file) {
+        return file.isFile() && extname2(file.name).toLowerCase() === ".heic";
+      }
+      async function convert(srcPhoto, dryRun) {
         let srcPhotoPath, outPhotoPath;
         try {
-          srcPhotoPath = join4(srcPhoto.parentPath, srcPhoto.name);
-          outPhotoPath = join4(
-            srcPhoto.parentPath,
-            `${basename(srcPhoto.name, extname2(srcPhoto.name))}.jpeg`
-          );
           logger3.info('Convert "%s"', srcPhoto.name);
-          const inputStream = await fs3.readFile(srcPhotoPath);
-          const outputStream = await (0, import_heic_convert.default)({
-            buffer: inputStream,
-            format: "JPEG",
-            quality: 1
-          });
-          await fs3.writeFile(outPhotoPath, Buffer.from(outputStream));
-          this.convertedPhotos.push(outPhotoPath);
-          if (this.dryRun) {
-            logger3.warn('Delete, for dry-run, "%s"', srcPhoto.name);
-            await trash(outPhotoPath);
-          } else {
-            logger3.info('Delete "%s"', srcPhoto.name);
-            await trash(srcPhotoPath);
-          }
+          srcPhotoPath = join4(srcPhoto.parentPath, srcPhoto.name);
+          outPhotoPath = join4(dirname(srcPhotoPath), `${basename(srcPhoto.name, extname2(srcPhoto.name))}.jpeg`);
+          await convertToJPEG(srcPhotoPath, outPhotoPath);
+          await deletePhoto(srcPhoto.name, srcPhotoPath, outPhotoPath, dryRun);
         } catch (error) {
-          logger3.error(error, 'Error converting "%s"', srcPhoto.name);
-          this.failedPhotos.set(srcPhoto.name, handleErrorUnknown(error));
+          const err = handleErrorUnknown(error);
+          throw new Error(`Error converting "${srcPhotoPath}": ${err.message}`, { cause: error });
         }
       }
-    };
+      HEICtoJpegConverter2.convert = convert;
+      async function convertToJPEG(srcPhotoPath, outPhotoPath) {
+        const inputStream = await fs3.readFile(srcPhotoPath);
+        const outputStream = await (0, import_heic_convert.default)({
+          buffer: inputStream,
+          format: "JPEG",
+          quality: 1
+        });
+        await fs3.writeFile(outPhotoPath, Buffer.from(outputStream));
+      }
+      async function deletePhoto(srcPhotoName, srcPhotoPath, outPhotoPath, dryRun) {
+        if (dryRun) {
+          logger3.warn('Delete converted, for dry-run, "%s"', srcPhotoName);
+          await trash(outPhotoPath);
+        } else {
+          logger3.info('Delete "%s"', srcPhotoName);
+          await trash(srcPhotoPath);
+        }
+      }
+    })(HEICtoJpegConverter || (HEICtoJpegConverter = {}));
   }
 });
 
@@ -20717,7 +20719,11 @@ async function promptForFolderPath() {
       choices
     });
   }
-  if (!folderPath || !fs4.existsSync(folderPath)) {
+  if (!fs4.existsSync(folderPath)) {
+    console.log("The specified folder path does not exist");
+    folderPath = "";
+  }
+  if (!folderPath) {
     folderPath = await esm_default5({
       message: "Enter the folder path to operate on:",
       validate: (inputValue) => {
@@ -20733,17 +20739,18 @@ async function runOneDriveNameDateFixer() {
     const folderPath = await promptForFolderPath();
     logger4.info(`Run fix media files names in: "${folderPath}"`);
     const handledFiles = await OneDriveNameDateFixer.scan(folderPath, (folder, files) => {
-      console.log(`Scanned folder: ${folder} - ${files.length} files`);
+      console.log(`Scanned folder: "${folder}", found ${files.length} files`);
     });
     const { updateRequired, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
     console.log(
       `
 Finished running OneDrive media file name/date fixer: 
 %d media files found
-%d require fixing
+\x1B[32m%d require fixing\x1B[0m
 %d already correct
 %d not iPhone
-%d other`,
+%d other
+`,
       handledFiles.length,
       updateRequired,
       noUpdateRequired,
@@ -20754,21 +20761,22 @@ Finished running OneDrive media file name/date fixer:
       console.log("No files to fix");
       return;
     }
-    const { run, dryRun } = await getRunConfirmationChoice();
+    const { run, dryRun } = await getRunConfirmationChoice("Run?");
     if (!run) {
       return;
     }
     const fixProgCallback = (index, total, file) => {
-      console.log(`Updated file ${index} of ${total}: ${file.file.name} --> ${file.newName}`);
+      console.log(`Updated file ${index} of ${total}: "${file.file.name}" --> "${file.newName}"`);
     };
     if (dryRun) {
-      await OneDriveNameDateFixer.fix(handledFiles.slice(), dryRun, fixProgCallback);
+      await OneDriveNameDateFixer.fix(handledFiles, true, fixProgCallback);
       const runReal = await esm_default4({ message: "Run the fix for real?", default: false });
       if (!runReal) {
         return;
       }
     }
-    await OneDriveNameDateFixer.fix(handledFiles, dryRun, fixProgCallback);
+    await OneDriveNameDateFixer.fix(handledFiles, false, fixProgCallback);
+    console.log("\x1B[32m Complete\x1B[0m\n");
   } catch (error) {
     logger4.fatal(error, "Failed running OneDrive name date fixer");
   }
@@ -20790,22 +20798,50 @@ function getCounts(handledFiles) {
 }
 async function runHEICtoJPEGConverter() {
   const folderPath = await promptForFolderPath();
-  const { run, dryRun } = await getRunConfirmationChoice();
+  logger4.info(`Run convert HEIC photos to JPEG in: "${folderPath}"`);
+  const heicPhotos = await HEICtoJpegConverter.scan(folderPath);
+  console.log(
+    `
+\x1B[32mFound \x1B[1m%d\x1B[0m HEIC photos to convert.\x1B[0m
+`,
+    heicPhotos.length
+  );
+  const { run, dryRun } = await getRunConfirmationChoice("Convert?");
   if (!run) {
     return;
   }
-  logger4.info(`Run fix media files names in: "${folderPath}"`);
-  const { convertedPhotos, failedPhotos } = await HEICtoJpegConverter.convertFolder(folderPath, dryRun);
+  if (dryRun) {
+    await convertAllPhotos(heicPhotos, true);
+    const runReal = await esm_default4({ message: "Convert for real?", default: false });
+    if (!runReal) {
+      return;
+    }
+  }
+  const { successCount, failedCount } = await convertAllPhotos(heicPhotos, false);
   logger4.info(
     `
--------------
-Finished running HEIC to JPEG converter: 
+\x1B[32m Complete\x1B[0m: 
 %d converted
 %d failed
--------------`,
-    convertedPhotos.length,
-    failedPhotos.size
+`,
+    successCount,
+    failedCount
   );
+}
+async function convertAllPhotos(heicPhotos, dryRun) {
+  let successCount = 0, failedCount = 0;
+  for (const photo of heicPhotos) {
+    try {
+      await HEICtoJpegConverter.convert(photo, dryRun);
+      successCount++;
+      console.log(`Converted "${photo.name}"`);
+    } catch (error) {
+      failedCount++;
+      const err = handleErrorUnknown(error);
+      console.error(`Failed to convert "${photo.name}": ${err.message}`);
+    }
+  }
+  return { successCount, failedCount };
 }
 function readData() {
   if (!fs4.existsSync(onedriveFixerDataFile)) {
@@ -20820,9 +20856,9 @@ function writeData(data, folderPath) {
   data.lastUsedPaths = data.lastUsedPaths.slice(0, 3);
   fs4.writeFileSync(onedriveFixerDataFile, JSON.stringify(data, null, 2));
 }
-async function getRunConfirmationChoice() {
+async function getRunConfirmationChoice(message) {
   return await esm_default11({
-    message: "Run?:",
+    message,
     choices: [
       { name: "Yes", value: { run: true, dryRun: false } },
       { name: "Dry-Run", value: { run: true, dryRun: true } },
@@ -20839,6 +20875,7 @@ var init_cmd_interface = __esm({
     await init_onedrive_name_date_fixer();
     init_entities();
     await init_heic_to_jpeg_converter();
+    init_common();
     logger4 = getLogger("cmd-interface");
     Options = /* @__PURE__ */ ((Options2) => {
       Options2[Options2["FixFileNames"] = 0] = "FixFileNames";

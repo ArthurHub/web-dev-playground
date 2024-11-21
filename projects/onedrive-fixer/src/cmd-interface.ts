@@ -121,7 +121,7 @@ async function runOneDriveNameDateFixer(): Promise<void> {
       `
 Finished running OneDrive media file name/date fixer: 
 %d media files found
-%d require fixing
+\x1b[32m%d require fixing\x1b[0m
 %d already correct
 %d not iPhone
 %d other
@@ -148,7 +148,7 @@ Finished running OneDrive media file name/date fixer:
     };
 
     if (dryRun) {
-      await OneDriveNameDateFixer.fix(handledFiles.slice(), dryRun, fixProgCallback);
+      await OneDriveNameDateFixer.fix(handledFiles, true, fixProgCallback);
 
       const runReal = await confirm({ message: 'Run the fix for real?', default: false });
       if (!runReal) {
@@ -156,7 +156,8 @@ Finished running OneDrive media file name/date fixer:
       }
     }
 
-    await OneDriveNameDateFixer.fix(handledFiles, dryRun, fixProgCallback);
+    await OneDriveNameDateFixer.fix(handledFiles, false, fixProgCallback);
+    console.log('\x1b[32m Complete\x1b[0m\n');
   } catch (error) {
     logger.fatal(error, 'Failed running OneDrive name date fixer');
   }
@@ -188,7 +189,12 @@ async function runHEICtoJPEGConverter(): Promise<void> {
   logger.info(`Run convert HEIC photos to JPEG in: "${folderPath}"`);
   const heicPhotos = await HEICtoJpegConverter.scan(folderPath);
 
-  console.log(`Found %d HEIC photos to convert.`, heicPhotos.length);
+  console.log(
+    `
+\x1b[32mFound \x1b[1m%d\x1b[0m HEIC photos to convert.\x1b[0m
+`,
+    heicPhotos.length,
+  );
   const { run, dryRun } = await getRunConfirmationChoice('Convert?');
   if (!run) {
     return;
@@ -196,7 +202,7 @@ async function runHEICtoJPEGConverter(): Promise<void> {
 
   if (dryRun) {
     await convertAllPhotos(heicPhotos, true);
-    const runReal = await confirm({ message: 'Run the fix for real?', default: false });
+    const runReal = await confirm({ message: 'Convert for real?', default: false });
     if (!runReal) {
       return;
     }
@@ -205,7 +211,7 @@ async function runHEICtoJPEGConverter(): Promise<void> {
   const { successCount, failedCount } = await convertAllPhotos(heicPhotos, false);
   logger.info(
     `
-Finished Converting HEIC to JPEG converter: 
+\x1b[32m Complete\x1b[0m: 
 %d converted
 %d failed
 `,

@@ -27,7 +27,7 @@ describe('OneDriveNameDateFixer', () => {
 
     expect(handledFiles.length).toEqual(5);
 
-    const updated = handledFiles.filter((file) => file.status === OneDriveFileToFixStatus.UpdateComplete);
+    const updated = handledFiles.filter((file) => file.status === OneDriveFileToFixStatus.UpdateRequired);
     const noUpdateRequired = handledFiles.filter((file) => file.status === OneDriveFileToFixStatus.NoUpdateRequired);
     const skippedNotIPhone = handledFiles.filter((file) => file.status === OneDriveFileToFixStatus.SkippedNotIPhone);
 

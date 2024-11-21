@@ -87,7 +87,7 @@ describe('OneDriveNameDateFixer', () => {
     await OneDriveNameDateFixer.fix(handledFiles, true, vi.fn());
 
     expect(handledFiles).toHaveLength(1);
-    expect(handledFiles[0]?.status).toBe(OneDriveFileToFixStatus.UpdateComplete);
+    expect(handledFiles[0]?.status).toBe(OneDriveFileToFixStatus.UpdateRequired);
     expect(fs.rename).not.toHaveBeenCalled();
   });
 });
