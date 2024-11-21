@@ -15,8 +15,8 @@ import { handleErrorUnknown } from 'common/common.js';
 import { getLogger } from 'common/logger.js';
 import type { Dirent } from 'fs';
 import * as fs from 'fs/promises';
-import { join, basename, extname } from 'path';
-import convert from 'heic-convert';
+import { join, basename, extname, dirname } from 'path';
+import convertHeic from 'heic-convert';
 import trash from 'trash';
 
 const logger = getLogger('heic-to-jpeg-converter');
@@ -25,70 +25,66 @@ const logger = getLogger('heic-to-jpeg-converter');
  * Covert apple HEIC photos to JPEG format.
  * Use 0.92 quality to keep the quality high and size about the same.
  */
-export class HEICtoJpegConverter {
-  private readonly dryRun: boolean;
-  private readonly convertedPhotos: string[] = [];
-  private readonly failedPhotos = new Map<string, Error>();
-
-  constructor(dryRun: boolean) {
-    this.dryRun = dryRun;
-  }
-
-  static async convertFolder(
-    folderPath: string,
-    dryRun: boolean = true,
-  ): Promise<{
-    convertedPhotos: string[];
-    failedPhotos: Map<string, Error>;
-  }> {
-    const converter = new HEICtoJpegConverter(dryRun);
-    await converter.convertFolder(folderPath);
-    return { convertedPhotos: converter.convertedPhotos, failedPhotos: converter.failedPhotos };
-  }
-
-  async convertFolder(folderPath: string): Promise<void> {
-    logger.info('Convert folder "%s"', folderPath);
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace HEICtoJpegConverter {
+  export async function scan(folderPath: string): Promise<Dirent[]> {
+    logger.debug('Scanning folder "%s"', folderPath);
+    const heicPhotos: Dirent[] = [];
     const files = await fs.readdir(folderPath, { withFileTypes: true });
     for (const file of files) {
+      const filePath = join(folderPath, file.name);
       if (file.isDirectory()) {
-        await this.convertFolder(join(folderPath, file.name));
-      } else if (file.isFile() && extname(file.name).toLowerCase() === '.heic') {
-        await this.convertPhoto(file);
+        const subFolder = await scan(filePath);
+        heicPhotos.push(...subFolder);
+      } else if (isHeicPhoto(file)) {
+        heicPhotos.push(file);
+      } else {
+        logger.debug('Ignore "%s"', file.name);
       }
+    }
+    return heicPhotos;
+  }
+
+  function isHeicPhoto(file: Dirent): boolean {
+    return file.isFile() && extname(file.name).toLowerCase() === '.heic';
+  }
+
+  export async function convert(srcPhoto: Dirent, dryRun: boolean): Promise<void> {
+    let srcPhotoPath, outPhotoPath: string;
+    try {
+      logger.info('Convert "%s"', srcPhoto.name);
+      srcPhotoPath = join(srcPhoto.parentPath, srcPhoto.name);
+      outPhotoPath = join(dirname(srcPhotoPath), `${basename(srcPhoto.name, extname(srcPhoto.name))}.jpeg`);
+      await convertToJPEG(srcPhotoPath, outPhotoPath);
+      await deletePhoto(srcPhoto.name, srcPhotoPath, outPhotoPath, dryRun);
+    } catch (error) {
+      const err = handleErrorUnknown(error);
+      throw new Error(`Error converting "${srcPhotoPath}": ${err.message}`, { cause: error });
     }
   }
 
-  async convertPhoto(srcPhoto: Dirent): Promise<void> {
-    let srcPhotoPath, outPhotoPath: string;
-    try {
-      srcPhotoPath = join(srcPhoto.parentPath, srcPhoto.name);
-      outPhotoPath = join(
-        srcPhoto.parentPath,
-        `${basename(srcPhoto.name, extname(srcPhoto.name))}.jpeg`,
-      );
+  async function convertToJPEG(srcPhotoPath: string, outPhotoPath: string): Promise<void> {
+    const inputStream = await fs.readFile(srcPhotoPath);
+    const outputStream = await convertHeic({
+      buffer: inputStream,
+      format: 'JPEG',
+      quality: 1,
+    });
+    await fs.writeFile(outPhotoPath, Buffer.from(outputStream));
+  }
 
-      logger.info('Convert "%s"', srcPhoto.name);
-      const inputStream = await fs.readFile(srcPhotoPath);
-      const outputStream = await convert({
-        buffer: inputStream,
-        format: 'JPEG',
-        quality: 1,
-      });
-      await fs.writeFile(outPhotoPath, Buffer.from(outputStream));
-
-      // success
-      this.convertedPhotos.push(outPhotoPath);
-
-      if (this.dryRun) {
-        logger.warn('Delete, for dry-run, "%s"', srcPhoto.name);
-        await trash(outPhotoPath);
-      } else {
-        logger.info('Delete "%s"', srcPhoto.name);
-        await trash(srcPhotoPath);
-      }
-    } catch (error) {
-      logger.error(error, 'Error converting "%s"', srcPhoto.name);
-      this.failedPhotos.set(srcPhoto.name, handleErrorUnknown(error));
+  async function deletePhoto(
+    srcPhotoName: string,
+    srcPhotoPath: string,
+    outPhotoPath: string,
+    dryRun: boolean,
+  ): Promise<void> {
+    if (dryRun) {
+      logger.warn('Delete converted, for dry-run, "%s"', srcPhotoName);
+      await trash(outPhotoPath);
+    } else {
+      logger.info('Delete "%s"', srcPhotoName);
+      await trash(srcPhotoPath);
     }
   }
 }

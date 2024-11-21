@@ -19,6 +19,7 @@ import { OneDriveFileToFixStatus, type OneDriveFileToFix } from './entities.js';
 import path from 'path';
 import { tmpdir } from 'os';
 import { HEICtoJpegConverter } from './heic-to-jpeg-converter.js';
+import { handleErrorUnknown } from 'common/common.js';
 
 const logger = getLogger('cmd-interface');
 
@@ -86,8 +87,13 @@ async function promptForFolderPath(): Promise<string> {
   }
 
   // check if we have an existing folder
-  if (!folderPath || !fs.existsSync(folderPath)) {
-    // Ask for file path
+  if (!fs.existsSync(folderPath)) {
+    console.log('The specified folder path does not exist');
+    folderPath = '';
+  }
+
+  // Ask for file path
+  if (!folderPath) {
     folderPath = await input({
       message: 'Enter the folder path to operate on:',
       validate: (inputValue: string) => {
@@ -107,7 +113,7 @@ async function runOneDriveNameDateFixer(): Promise<void> {
 
     logger.info(`Run fix media files names in: "${folderPath}"`);
     const handledFiles = await OneDriveNameDateFixer.scan(folderPath, (folder, files) => {
-      console.log(`Scanned folder: ${folder} - ${files.length} files`);
+      console.log(`Scanned folder: "${folder}", found ${files.length} files`);
     });
 
     const { updateRequired, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
@@ -118,7 +124,8 @@ Finished running OneDrive media file name/date fixer:
 %d require fixing
 %d already correct
 %d not iPhone
-%d other`,
+%d other
+`,
       handledFiles.length,
       updateRequired,
       noUpdateRequired,
@@ -131,13 +138,13 @@ Finished running OneDrive media file name/date fixer:
       return;
     }
 
-    const { run, dryRun } = await getRunConfirmationChoice();
+    const { run, dryRun } = await getRunConfirmationChoice('Run?');
     if (!run) {
       return;
     }
 
     const fixProgCallback = (index: number, total: number, file: OneDriveFileToFix): void => {
-      console.log(`Updated file ${index} of ${total}: ${file.file.name} --> ${file.newName}`);
+      console.log(`Updated file ${index} of ${total}: "${file.file.name}" --> "${file.newName}"`);
     };
 
     if (dryRun) {
@@ -178,23 +185,53 @@ function getCounts(handledFiles: OneDriveFileToFix[]): {
 async function runHEICtoJPEGConverter(): Promise<void> {
   const folderPath = await promptForFolderPath();
 
-  const { run, dryRun } = await getRunConfirmationChoice();
+  logger.info(`Run convert HEIC photos to JPEG in: "${folderPath}"`);
+  const heicPhotos = await HEICtoJpegConverter.scan(folderPath);
+
+  console.log(`Found %d HEIC photos to convert.`, heicPhotos.length);
+  const { run, dryRun } = await getRunConfirmationChoice('Convert?');
   if (!run) {
     return;
   }
 
-  logger.info(`Run fix media files names in: "${folderPath}"`);
-  const { convertedPhotos, failedPhotos } = await HEICtoJpegConverter.convertFolder(folderPath, dryRun);
+  if (dryRun) {
+    await convertAllPhotos(heicPhotos, true);
+    const runReal = await confirm({ message: 'Run the fix for real?', default: false });
+    if (!runReal) {
+      return;
+    }
+  }
+
+  const { successCount, failedCount } = await convertAllPhotos(heicPhotos, false);
   logger.info(
     `
--------------
-Finished running HEIC to JPEG converter: 
+Finished Converting HEIC to JPEG converter: 
 %d converted
 %d failed
--------------`,
-    convertedPhotos.length,
-    failedPhotos.size,
+`,
+    successCount,
+    failedCount,
   );
+}
+
+async function convertAllPhotos(
+  heicPhotos: fs.Dirent[],
+  dryRun: boolean,
+): Promise<{ successCount: number; failedCount: number }> {
+  let successCount = 0,
+    failedCount = 0;
+  for (const photo of heicPhotos) {
+    try {
+      await HEICtoJpegConverter.convert(photo, dryRun);
+      successCount++;
+      console.log(`Converted "${photo.name}"`);
+    } catch (error) {
+      failedCount++;
+      const err = handleErrorUnknown(error);
+      console.error(`Failed to convert "${photo.name}": ${err.message}`);
+    }
+  }
+  return { successCount, failedCount };
 }
 
 // Function to read data, typed with OneDriveFixerData
@@ -214,9 +251,9 @@ function writeData(data: OneDriveFixerData, folderPath: string): void {
   fs.writeFileSync(onedriveFixerDataFile, JSON.stringify(data, null, 2));
 }
 
-async function getRunConfirmationChoice(): Promise<{ run: boolean; dryRun: boolean }> {
+async function getRunConfirmationChoice(message: string): Promise<{ run: boolean; dryRun: boolean }> {
   return await select({
-    message: 'Run?:',
+    message: message,
     choices: [
       { name: 'Yes', value: { run: true, dryRun: false } },
       { name: 'Dry-Run', value: { run: true, dryRun: true } },
