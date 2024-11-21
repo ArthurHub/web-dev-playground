@@ -45,6 +45,20 @@ describe('getDateIgnoreTimezone', () => {
     expect(date).toEqual(new Date(dateStr));
   });
 
+  it('should not change date', () => {
+    for (const dateStr of [
+      '2022-01-01T12:00:00',
+      '2022-01-01T23:59:00',
+      '2022-01-01T23:59:00+11:00',
+      '2022-01-01T23:59:00-10:00',
+    ]) {
+      const date = getDateIgnoreTimezone(dateStr);
+      expect(date.getDate()).toEqual(1);
+      expect(date.getUTCMonth()).toEqual(0);
+      expect(date.getFullYear()).toEqual(2022);
+    }
+  });
+
   it('should throw an error if dateString is undefined', () => {
     expect(() => getDateIgnoreTimezone(undefined)).toThrow('Date string is undefined');
   });
