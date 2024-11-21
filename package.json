@@ -4,25 +4,27 @@
   "type": "module",
   "scripts": {
     "reinstall": "rm -rf node_modules && npm install",
+    "update-modules": "ncu -u && npm install",
     "clean": "tsc --build --clean",
     "build": "tsc --build",
+    "bw": "tsc --build --watch",
     "lint": "eslint",
-    "pretest": "npm run lint && npm run build",
-    "test": "vitest",
+    "pretest": "npm run build",
+    "test": "vitest run",
+    "tw": "vitest --watch",
     "coverage": "vitest run --coverage",
-    "start": "npm run start",
     "prettify": "prettier . --write"
   },
   "devDependencies": {
-    "@types/node": "^22.9.0",
-    "@typescript-eslint/eslint-plugin": "^8.13.0",
-    "@typescript-eslint/parser": "^8.13.0",
+    "@types/node": "^22.9.1",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
     "@vitejs/plugin-react": "^4.3.3",
-    "@vitest/coverage-v8": "^2.1.4",
-    "eslint": "^9.14.0",
+    "@vitest/coverage-v8": "^2.1.5",
+    "eslint": "^9.15.0",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.13.0",
-    "vitest": "^2.1.4"
+    "typescript-eslint": "^8.15.0",
+    "vitest": "^2.1.5"
   },
   "engines": {
     "node": ">=22",

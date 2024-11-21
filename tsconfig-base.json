@@ -38,6 +38,6 @@
 
     // handle libs: only know of node global env types
     "lib": ["ES2022", "DOM"],
-    "types": ["node", "vitest"]
+    "types": ["node"]
   }
 }

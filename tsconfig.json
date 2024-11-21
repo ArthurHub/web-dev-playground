@@ -1,5 +1,9 @@
 {
   "extends": "./tsconfig-base.json",
   "files": [],
-  "references": []
+  "references": [
+    { "path": "./projects/onedrive-fixer" },
+    { "path": "./projects/blog-transfer" },
+    { "path": "./shared/common" }
+  ]
 }
