@@ -42,27 +42,27 @@ class ConsoleLogger implements Logger {
   }
 
   public trace: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (LogLevelPriority[this.level] >= LogLevelPriority.trace) console.trace(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] <= LogLevelPriority.trace) console.trace(arg1, arg2, ...args);
   };
 
   public debug: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (LogLevelPriority[this.level] >= LogLevelPriority.debug) console.debug(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] <= LogLevelPriority.debug) console.debug(arg1, arg2, ...args);
   };
 
   public info: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (LogLevelPriority[this.level] >= LogLevelPriority.info) console.log(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] <= LogLevelPriority.info) console.log(arg1, arg2, ...args);
   };
 
   public warn: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (LogLevelPriority[this.level] >= LogLevelPriority.warn) console.warn(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] <= LogLevelPriority.warn) console.warn(arg1, arg2, ...args);
   };
 
   public error: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (LogLevelPriority[this.level] >= LogLevelPriority.error) console.error(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] <= LogLevelPriority.error) console.error(arg1, arg2, ...args);
   };
 
   public fatal: LogFn = (arg1: unknown, arg2?: string, ...args: any[]) => {
-    if (LogLevelPriority[this.level] >= LogLevelPriority.fatal) console.error(arg1, arg2, ...args);
+    if (LogLevelPriority[this.level] <= LogLevelPriority.fatal) console.error(arg1, arg2, ...args);
   };
 }
 
