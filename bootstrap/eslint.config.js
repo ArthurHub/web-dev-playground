@@ -7,7 +7,6 @@ export default tseslint.config(
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
-    ignorePatterns: ['eslint.config.js'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -15,7 +14,7 @@ export default tseslint.config(
       },
       parserOptions: {
         parser: '@typescript-eslint/parser',
-        project: './tsconfig.json',
+        projectService: './tsconfig.json',
       },
     },
   },
@@ -36,5 +35,6 @@ export default tseslint.config(
       '@typescript-eslint/no-inferrable-types': 'off',
     },
     files: ['**/*.ts', '**/*.tsx'],
+    ignores: ['eslint.config.js'],
   },
 );

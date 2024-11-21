@@ -29,6 +29,7 @@
     "forceConsistentCasingInFileNames": true,
 
     // interop
+    "allowJs": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
