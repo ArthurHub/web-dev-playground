@@ -23,7 +23,7 @@ import { handleErrorUnknown } from 'common/common.js';
 
 const logger = getLogger('cmd-interface');
 
-enum Options {
+export enum Options {
   FixFileNames,
   ConvertHEICtoJPEG,
   Exit,
@@ -58,6 +58,7 @@ export async function runOneDriveFixerCmdUserInterface(): Promise<void> {
     }
   } catch (error) {
     logger.error('Error:', error);
+    throw error;
   }
 }
 
@@ -108,17 +109,16 @@ async function promptForFolderPath(): Promise<string> {
 }
 
 async function runOneDriveNameDateFixer(): Promise<void> {
-  try {
-    const folderPath = await promptForFolderPath();
+  const folderPath = await promptForFolderPath();
 
-    logger.info(`Run fix media files names in: "${folderPath}"`);
-    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, (folder, files) => {
-      console.log(`Scanned folder: "${folder}", found ${files.length} files`);
-    });
+  logger.info(`Run fix media files names in: "${folderPath}"`);
+  const handledFiles = await OneDriveNameDateFixer.scan(folderPath, (folder, files) => {
+    console.log(`Scanned folder: "${folder}", found ${files.length} files`);
+  });
 
-    const { updateRequired, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
-    console.log(
-      `
+  const { updateRequired, noUpdateRequired, skippedNotIPhone } = getCounts(handledFiles);
+  console.log(
+    `
 Finished running OneDrive media file name/date fixer: 
 %d media files found
 \x1b[32m%d require fixing\x1b[0m
@@ -126,41 +126,38 @@ Finished running OneDrive media file name/date fixer:
 %d not iPhone
 %d other
 `,
-      handledFiles.length,
-      updateRequired,
-      noUpdateRequired,
-      skippedNotIPhone,
-      handledFiles.length - updateRequired - noUpdateRequired - skippedNotIPhone,
-    );
+    handledFiles.length,
+    updateRequired,
+    noUpdateRequired,
+    skippedNotIPhone,
+    handledFiles.length - updateRequired - noUpdateRequired - skippedNotIPhone,
+  );
 
-    if (updateRequired < 1) {
-      console.log('No files to fix');
-      return;
-    }
-
-    const { run, dryRun } = await getRunConfirmationChoice('Run?');
-    if (!run) {
-      return;
-    }
-
-    const fixProgCallback = (index: number, total: number, file: OneDriveFileToFix): void => {
-      console.log(`Updated file ${index} of ${total}: "${file.file.name}" --> "${file.newName}"`);
-    };
-
-    if (dryRun) {
-      await OneDriveNameDateFixer.fix(handledFiles, true, fixProgCallback);
-
-      const runReal = await confirm({ message: 'Run the fix for real?', default: false });
-      if (!runReal) {
-        return;
-      }
-    }
-
-    await OneDriveNameDateFixer.fix(handledFiles, false, fixProgCallback);
-    console.log('\x1b[32m Complete\x1b[0m\n');
-  } catch (error) {
-    logger.fatal(error, 'Failed running OneDrive name date fixer');
+  if (updateRequired < 1) {
+    console.log('No files to fix');
+    return;
   }
+
+  const { run, dryRun } = await getRunConfirmationChoice('Run?');
+  if (!run) {
+    return;
+  }
+
+  const fixProgCallback = (index: number, total: number, file: OneDriveFileToFix): void => {
+    console.log(`Updated file ${index} of ${total}: "${file.file.name}" --> "${file.newName}"`);
+  };
+
+  if (dryRun) {
+    await OneDriveNameDateFixer.fix(handledFiles, true, fixProgCallback);
+
+    const runReal = await confirm({ message: 'Run the fix for real?', default: false });
+    if (!runReal) {
+      return;
+    }
+  }
+
+  await OneDriveNameDateFixer.fix(handledFiles, false, fixProgCallback);
+  console.log('\x1b[32m Complete\x1b[0m\n');
 }
 
 function getCounts(handledFiles: OneDriveFileToFix[]): {
