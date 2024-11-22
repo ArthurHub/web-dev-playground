@@ -11,6 +11,11 @@
 //
 // ArthurHub, 2024
 
+/** True if the first char in the string is a digit, anything else is false */
+export function isDigit(char?: string): boolean {
+  return !!char && char >= '0' && char <= '9';
+}
+
 /**
  * Compare strings ignoring case. if any or both of the strings is undefined, return false.
  */

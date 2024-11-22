@@ -33,7 +33,7 @@ describe('OneDriveNameDateFixer', () => {
 
     expect(updated.length).toEqual(3);
     for (const file of updated) {
-      expect(['20220412_132854446_iOS.jpg', '20241101_094622039_iOS.heic', '20241111_204349000_iOS.MOV']).toContain(
+      expect(['20220412_132854_446_iOS.jpg', '20241101_094622_039_iOS.heic', '20241111_204349_000_iOS.MOV']).toContain(
         file.newName,
       );
     }

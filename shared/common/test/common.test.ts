@@ -12,7 +12,7 @@
 // ArthurHub, 2024
 
 import { describe, it, expect } from 'vitest';
-import { compareIgnoreCase, getDateIgnoreTimezone, handleErrorUnknown } from '../src/common.js';
+import { compareIgnoreCase, getDateIgnoreTimezone, handleErrorUnknown, isDigit } from '../src/common.js';
 
 describe('compareIgnoreCase', () => {
   it('should return true for equal strings ignoring case', () => {
@@ -92,5 +92,25 @@ describe('handleErrorUnknown', () => {
     const error = handleErrorUnknown(undefined);
     expect(error).toBeInstanceOf(Error);
     expect(error.message).toBe('An error with info: "Unknown"');
+  });
+
+  describe('isDigit', () => {
+    it('should return true for digit characters', () => {
+      expect(isDigit('0')).toBe(true);
+      expect(isDigit('5')).toBe(true);
+      expect(isDigit('9')).toBe(true);
+    });
+
+    it('should return false for non-digit characters', () => {
+      expect(isDigit('a')).toBe(false);
+      expect(isDigit(' ')).toBe(false);
+      expect(isDigit('-')).toBe(false);
+      expect(isDigit('')).toBe(false);
+    });
+
+    it('should return false for undefined or null input', () => {
+      expect(isDigit(undefined)).toBe(false);
+      expect(isDigit(null as unknown as string)).toBe(false);
+    });
   });
 });

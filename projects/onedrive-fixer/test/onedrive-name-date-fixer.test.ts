@@ -32,6 +32,26 @@ describe('OneDriveNameDateFixer', () => {
     vi.clearAllMocks();
   });
 
+  it('should have correct new name', async () => {
+    fs.readdir = vi.fn().mockResolvedValue([
+      {
+        ...file,
+        name: '20220111_155512.jpg',
+      },
+      {
+        ...file,
+        name: '20220111_155512123.jpg',
+      },
+    ]);
+    exiftool.read = vi.fn().mockResolvedValue(metadata);
+
+    const handledFiles = await OneDriveNameDateFixer.scan(folderPath, vi.fn());
+
+    expect(handledFiles).toHaveLength(2);
+    expect(handledFiles[0]?.newName).toBe('20220101_120000.jpg');
+    expect(handledFiles[1]?.newName).toBe('20220101_120000_123.jpg');
+  });
+
   it('should update file names correctly', async () => {
     fs.readdir = vi.fn().mockResolvedValue([file]);
     exiftool.read = vi.fn().mockResolvedValue(metadata);

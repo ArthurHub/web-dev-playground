@@ -16,7 +16,7 @@ import { extname, join, resolve } from 'path';
 import { exiftool } from 'exiftool-vendored';
 import { getLogger } from 'common/logger.js';
 import { OneDriveFileToFixStatus, type OneDriveFileToFix } from './entities.js';
-import { compareIgnoreCase, getDateIgnoreTimezone, handleErrorUnknown } from 'common/common.js';
+import { compareIgnoreCase, getDateIgnoreTimezone, handleErrorUnknown, isDigit } from 'common/common.js';
 
 const logger = getLogger('name-date-fixer');
 
@@ -137,14 +137,15 @@ export namespace OneDriveNameDateFixer {
       }
 
       const fileCreationDate = getDateIgnoreTimezone(metadata.CreateDate.toString());
-      if (fileNameCreationDate.getTime() === fileCreationDate.getTime()) {
+      const newFileName = getNewFilename(file, fileCreationDate);
+      if (file.name === newFileName) {
         return { file, status: OneDriveFileToFixStatus.NoUpdateRequired };
       }
 
       return {
         file: file,
         status: OneDriveFileToFixStatus.UpdateRequired,
-        newName: getNewFilename(file, fileCreationDate),
+        newName: newFileName,
       };
     } catch (error) {
       console.error([error, filePath], 'Error processing file %s', file.name);
@@ -171,7 +172,8 @@ export namespace OneDriveNameDateFixer {
     const ss = String(date.getSeconds()).padStart(2, '0');
     const formattedDate = `${yyyy}${MM}${dd}_${hh}${mm}${ss}`;
     const filenameSuffix = file.name.substring(formattedDate.length);
-    return `${formattedDate}${filenameSuffix}`;
+    const addUnderscore = isDigit(filenameSuffix[0]) ? '_' : '';
+    return `${formattedDate}${addUnderscore}${filenameSuffix}`;
   }
 
   async function renameFile(file: OneDriveFileToFix, dryRun: boolean): Promise<void> {

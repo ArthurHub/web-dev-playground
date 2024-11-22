@@ -13783,6 +13783,9 @@ var init_entities = __esm({
 });
 
 // ../../shared/common/dist/common.js
+function isDigit(char) {
+  return !!char && char >= "0" && char <= "9";
+}
 function compareIgnoreCase(str1, str2) {
   if (!str1 || !str2)
     return false;
@@ -13895,13 +13898,14 @@ var init_onedrive_name_date_fixer = __esm({
             return { file, status: "SKIPPED_DATE_UNKNOWN" /* SkippedDateUnknown */ };
           }
           const fileCreationDate = getDateIgnoreTimezone(metadata.CreateDate.toString());
-          if (fileNameCreationDate.getTime() === fileCreationDate.getTime()) {
+          const newFileName = getNewFilename(file, fileCreationDate);
+          if (file.name === newFileName) {
             return { file, status: "NO_UPDATE_REQUIRED" /* NoUpdateRequired */ };
           }
           return {
             file,
             status: "UPDATE_REQUIRED" /* UpdateRequired */,
-            newName: getNewFilename(file, fileCreationDate)
+            newName: newFileName
           };
         } catch (error) {
           console.error([error, filePath], "Error processing file %s", file.name);
@@ -13926,7 +13930,8 @@ var init_onedrive_name_date_fixer = __esm({
         const ss = String(date.getSeconds()).padStart(2, "0");
         const formattedDate = `${yyyy}${MM}${dd}_${hh}${mm}${ss}`;
         const filenameSuffix = file.name.substring(formattedDate.length);
-        return `${formattedDate}${filenameSuffix}`;
+        const addUnderscore = isDigit(filenameSuffix[0]) ? "_" : "";
+        return `${formattedDate}${addUnderscore}${filenameSuffix}`;
       }
       async function renameFile(file, dryRun) {
         try {
