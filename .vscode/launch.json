@@ -43,9 +43,8 @@
       "request": "launch",
       "name": "TypeScript Learn - main",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}\\typescript-learn\\src\\main.ts",
+      "program": "${workspaceFolder}\\projects\\typescript-learn\\src\\main.ts",
       "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/typescript-learn/dist/**/*.js"],
       "internalConsoleOptions": "openOnSessionStart"
     },
     {

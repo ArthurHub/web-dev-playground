@@ -33,7 +33,7 @@
     },
     {
       "type": "typescript",
-      "tsconfig": "typescript-learn/tsconfig.json",
+      "tsconfig": "projects/typescript-learn/tsconfig.json",
       "problemMatcher": ["$tsc"],
       "group": {
         "kind": "build",

@@ -11,17 +11,34 @@
 //
 // ArthurHub, 2024
 
-class Foo {
-  public bla?: string = 'sdf';
-
-  public func() {
-    this.bla = undefined;
-    console.log(bla);
-
-    const num = '5' == 2;
+class FooBase {
+  toString(): string {
+    const entries = Object.entries(this)
+      .map(([key, value]) => `${key}: "${String(value).substring(0, 50)}"`)
+      .join(', ');
+    return `${this.constructor.name}:(${entries})`;
   }
 }
 
-let bla: string;
+class Foo extends FooBase {
+  public name: string = 'some name';
+  public age?: number = 78;
 
-console.log(bla);
+  constructor() {
+    super();
+    console.log('Foo constructor');
+  }
+
+  [Symbol.toPrimitive](hint: unknown): string {
+    return `Symbol - Foo: bla: ${this.name}`;
+  }
+}
+
+export function doSomething() {
+  const foo = new Foo();
+  const bla: string = foo.toString();
+  const bla2 = String(foo);
+  const bla3 = +foo;
+  console.log(`${foo}`);
+  console.log('done');
+}
