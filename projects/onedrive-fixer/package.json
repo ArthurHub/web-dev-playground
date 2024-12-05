@@ -14,27 +14,11 @@
     "build": "tsc --build",
     "start": "npm run build && node dist/main.js",
     "test": "vitest",
-    "bundle": "npm run build && node build.js",
-    "bundle-parcel": "parcel build --no-source-maps --no-cache",
-    "pkg": "node-runner-pkg"
+    "bundle": "npm run clean && npm run build && node esbuild.js"
   },
   "devDependencies": {
     "@types/heic-convert": "^2.1.0",
     "@types/heic-decode": "^1.1.2",
-    "esbuild": "^0.24.0",
-    "parcel": "^2.13.0"
-  },
-  "targets": {
-    "default": {
-      "source": "src/main.ts",
-      "distDir": "./dist/bundle",
-      "outputFormat": "esmodule",
-      "context": "node",
-      "includeNodeModules": true,
-      "optimize": false,
-      "engines": {
-        "node": ">=22"
-      }
-    }
+    "esbuild": "^0.24.0"
   }
 }

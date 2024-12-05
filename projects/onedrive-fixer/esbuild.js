@@ -5,14 +5,14 @@ const { dirname: shimDirname } = await import("path");
 const { fileURLToPath: shimFileURLToPath } = await import("url");
 globalThis.__filename = shimFileURLToPath(import.meta.url);
 globalThis.__dirname = shimDirname(globalThis.__filename);
-import { createRequire } from 'module'; 
+import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 `;
 
 const buildOptions = {
   bundle: true,
   entryPoints: ['src/main.ts'],
-  outfile: 'dist/bundle/bundle.mjs',
+  outfile: 'out/bundle/bundle.mjs',
   platform: 'node',
   target: 'node22',
   format: 'esm',
