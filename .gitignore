@@ -40,6 +40,7 @@ Thumbs.db
 ehthumbs.db
 
 # Other
+.packseb-cache
 *.tgz
 .env
 .env.test

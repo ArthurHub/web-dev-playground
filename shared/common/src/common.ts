@@ -11,6 +11,8 @@
 //
 // ArthurHub, 2024
 
+import process from 'node:process';
+
 /** True if the first char in the string is a digit, anything else is false */
 export function isDigit(char?: string): boolean {
   return !!char && char >= '0' && char <= '9';
@@ -42,16 +44,58 @@ export function getDateIgnoreTimezone(dateString: string | undefined): Date {
   return new Date(dateString);
 }
 
-// TODO: understand "unknown" type error handling
-export function handleErrorUnknown(ex: unknown): Error {
-  if (ex instanceof Error) {
-    return ex;
-  } else if (typeof ex === 'string') {
-    return new Error(ex);
+/**
+ * Get the error object from an unknown error object.
+ * https://kentcdodds.com/blog/get-a-catch-block-error-message-with-typescript?utm_source=pocket_shared
+ */
+export function handleErrorUnknown(err: unknown): Error {
+  if (err instanceof Error) {
+    // just an error
+    return err;
+  } else if (typeof err === 'string') {
+    // just a string
+    return new Error(err);
   }
-  // return `${ex.name}: ${ex.message} + ${ex.cause ? String(ex.cause) : ''} ${
-  //   ex.stack ? `\n${ex.stack}` : ''
-  // }`;
-  // eslint-disable-next-line @typescript-eslint/no-base-to-string
-  return new Error(`An error with info: "${String(ex ?? 'Unknown')}"`);
+  try {
+    if (
+      typeof err === 'object' &&
+      err !== null &&
+      'message' in err &&
+      typeof (err as Record<string, unknown>)['message'] === 'string'
+    ) {
+      // an object that has a message property
+      return new Error(typeof (err as Record<string, unknown>)['message'], { cause: err });
+    }
+  } catch {
+    // ignore
+  }
+  try {
+    // whatever object
+    return new Error(JSON.stringify(err), { cause: err });
+  } catch {
+    // fallback in case there's an error stringifying
+    return new Error(String(err), { cause: err });
+  }
+}
+
+export function isPlainObject(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const prototype = Object.getPrototypeOf(value);
+  return (
+    (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) &&
+    !(Symbol.toStringTag in value) &&
+    !(Symbol.iterator in value)
+  );
+}
+
+export function isProcessRunning(pid: number): boolean {
+  try {
+    return process.kill(pid, 0);
+  } catch (e) {
+    return (e as NodeJS.ErrnoException).code === 'EPERM';
+  }
 }

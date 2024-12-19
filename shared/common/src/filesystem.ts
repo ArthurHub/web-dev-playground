@@ -11,8 +11,20 @@
 //
 // ArthurHub, 2024
 
+import os from 'node:os';
+import process from 'node:process';
 import { Dirent, promises as fs } from 'fs';
 import { join, extname } from 'path';
+import { randomUUID } from 'node:crypto';
+
+export async function pathExists(path: string): Promise<boolean> {
+  try {
+    await fs.access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Iterate over the files in a folder and apply a function to each file.
@@ -43,4 +55,30 @@ export async function iterateFiles(
  */
 export function iterateFilesByExtensionFilter(extension: string[]): (file: Dirent) => boolean {
   return (file: Dirent): boolean => extension.includes(extname(file.name));
+}
+
+export function pathKey(
+  options: { env: NodeJS.ProcessEnv; platform: NodeJS.Platform } = { env: process.env, platform: process.platform },
+): string {
+  if (options.platform !== 'win32') {
+    return 'PATH';
+  }
+  return (
+    Object.keys(options.env)
+      .reverse()
+      .find((key) => key.toUpperCase() === 'PATH') ?? 'Path'
+  );
+}
+
+/**
+ * The os.tmpdir() built-in doesn't return the real path. That can cause problems
+ * when the returned path is a symlink, which is the case on macOS.
+ */
+export async function tempDir(): Promise<string> {
+  return await fs.realpath(os.tmpdir());
+}
+
+export async function tempfile(extension?: string): Promise<string> {
+  extension = extension ? (extension.startsWith('.') ? extension : `.${extension}`) : '';
+  return join(await tempDir(), randomUUID() + extension);
 }

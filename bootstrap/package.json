@@ -7,11 +7,11 @@
     "clean": "tsc --build --clean",
     "build": "tsc --build",
     "bw": "tsc --build --watch",
-    "lint": "eslint",
     "pretest": "npm run build",
     "test": "vitest run",
     "tw": "vitest --watch",
     "coverage": "vitest run --coverage",
+    "lint": "eslint",
     "prettify": "prettier . --write"
   },
   "devDependencies": {
